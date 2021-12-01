@@ -37,11 +37,11 @@ class watchairView extends WatchUi.View {
         var info = Position.getInfo();
         if (info == null || info.accuracy == Position.QUALITY_NOT_AVAILABLE || !hasLocation(info.position)) {
             setMessage("Waiting for GPS");            
-            var setPositionCallBack = self.method(:setPosition) as Method(info as Position.Info) as Void;
+            var setPositionCallBack = self.method(:setPositionAndGetWeatherData) as Method(info as Position.Info) as Void;
             Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, setPositionCallBack);                        
             startGPSTimer();
         } else {
-            setPosition(info);
+            setPositionAndGetWeatherData(info);
         }
     }
 
@@ -89,9 +89,9 @@ class watchairView extends WatchUi.View {
         }        
         if (info == null || info.accuracy == Position.QUALITY_NOT_AVAILABLE || !hasLocation(info.position)) {
             setMessage("Waiting (" + mGPSTimerCount.format("%0d") + ") for GPS");
-            var setPositionCallBack = self.method(:setPosition) as Method(info as Position.Info) as Void;
+            var setPositionCallBack = self.method(:setPositionAndGetWeatherData) as Method(info as Position.Info) as Void;
             Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, setPositionCallBack);   
-        } else if (setPosition(info)) { 
+        } else if (setPositionAndGetWeatherData(info)) { 
             stopGPSTimer(); 
             setMessage(null);
         }        
@@ -111,6 +111,13 @@ class watchairView extends WatchUi.View {
         WatchUi.requestUpdate(); 
     }
 
+    function setPositionAndGetWeatherData(info as Position.Info) as Boolean {
+        if (!setPosition(info)) { return false; }
+        var msg = checkRequestWeatherData();
+        setMessage(msg); 
+        return true;  
+    }
+
     function setPosition(info as Position.Info) as Boolean {
         if (info has :accuracy && info.accuracy != null) {
             mAccuracy = info.accuracy;                
@@ -119,11 +126,9 @@ class watchairView extends WatchUi.View {
             var location = info.position as Location;
             if (!hasLocation(location)) { return false; }
             mLocation = location;
-        } else { return false; }
-
-        var msg = checkRequestWeatherData();
-        setMessage(msg); 
-        return true;       
+            return true;    
+        } 
+        return false; 
     }
 
     function hasLocation(location as Position.Location?) as Boolean {
@@ -166,11 +171,13 @@ class watchairView extends WatchUi.View {
         renderAirQualityStats(dc, airQuality);
 
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
+        // Get latest gps data
+        setPosition(Position.getInfo());
         var degrees = null;
         if (hasLocation(mLocation)) {
             // Current
             var location = mLocation as Position.Location;
-            degrees = location.toDegrees();
+            degrees = location.toDegrees();            
         } else {
             // Last known
             degrees = Storage.getValue("requestCoordinates");
@@ -178,8 +185,8 @@ class watchairView extends WatchUi.View {
         }         
         var coordinates = "-- --";
         if (degrees != null) {
-            var degreesArray = degrees as Array<Number>;
-            coordinates = degreesArray[0].format("%02f") + "," + degreesArray[1].format("%02f");
+            var degreesArray = degrees as Array<Double>;
+            coordinates = degreesArray[0].format("%02f") + "," + degreesArray[1].format("%02f");            
         }
         var lineHeight = dc.getFontHeight(Graphics.FONT_SMALL);
         dc.drawText(dc.getWidth() /2 , lineHeight, Graphics.FONT_XTINY, coordinates, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
@@ -195,20 +202,26 @@ class watchairView extends WatchUi.View {
         // var airQualityColor = airQuality.airQualityAsColor();     
 
         dc.drawText(dc.getWidth() /2 , lineHeight * 3, Graphics.FONT_SMALL, airQuality.airQuality(), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
-        // @@ x:xx:xx obs time ago
-        // if (airQuality.observationTime != null) {
-        //     var obsTime = airQuality.observationTime as Time.Moment;
-        //     var elapsedSeconds = Time.now().value() - obsTime.value();
-        //     if (elapsedSeconds > 0) {
-        //         var ago = secondsToShortTimeString(elapsedSeconds) + " ago";
-        //         dc.drawText(dc.getWidth() /2 , lineHeight * 4, Graphics.FONT_XTINY, ago, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
-        //     }
-        // }
-        // @@ distance + bearing last known to observation location
         
+        var startYAdditional = lineHeight * 4;
+        var lineHeightAdditional = dc.getFontHeight(Graphics.FONT_XTINY);
+        if (airQuality.observationTime != null) {
+            var obsTime = airQuality.observationTime as Time.Moment;
+            var elapsedSeconds = Time.now().value() - obsTime.value();
+            if (elapsedSeconds > 0) {
+                var ago = secondsToShortTimeString(elapsedSeconds) + " ago";
+                dc.drawText(dc.getWidth() /2 , startYAdditional + lineHeightAdditional, Graphics.FONT_XTINY, ago, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+            }
+        }
+        
+        var distToObs = getRelativeToObservation(airQuality.lat, airQuality.lon);
+        if (distToObs.length() > 0) {            
+            dc.drawText(dc.getWidth() /2 , startYAdditional + lineHeightAdditional * 2, Graphics.FONT_XTINY, distToObs, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+        }
+
         // @@ units μg/m3 or ppm
         var units = "μg/m3";
-        dc.drawText(dc.getWidth() /2 , lineHeight * 5, Graphics.FONT_XTINY, units, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+        dc.drawText(dc.getWidth() /2 , startYAdditional + lineHeightAdditional * 3, Graphics.FONT_XTINY, units, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
     }
     
     function renderAirQualityStats(dc as Dc, airQuality as AirQuality) as Void {
@@ -218,7 +231,7 @@ class watchairView extends WatchUi.View {
         var mean = airQuality.AQM as AQMean;
         var centerX = dc.getWidth() / 2;
         var centerY = dc.getHeight() / 2;
-        var widthCell = 28;
+        var widthCell = 27;
         var radius = (dc.getWidth() / 2) - widthCell - 5;
 
         var startDeg = -35;
@@ -328,6 +341,7 @@ class watchairView extends WatchUi.View {
             dc.setPenWidth(1.0);
         }
 
+
     function drawStats(dc as Dc) as Void {
         var m = dc.getWidth() / 2; 
         var y = 1;
@@ -373,16 +387,12 @@ class watchairView extends WatchUi.View {
     // Called when this View is removed from the screen. Save the
     // state of this View here. This includes freeing resources from
     // memory.
-    function onHide() as Void {
-    }
+    function onHide() as Void {}
     
     function checkRequestWeatherData() as String? {
         var apiKey = mApiKey as String;
-        if (apiKey.length() == 0) {      
-            return "No api key";
-        }    
+        if (apiKey.length() == 0) { return "No api key"; }    
 
-        // && mAccuracy != Position.QUALITY_NOT_AVAILABLE
         var degrees = null;
         if (hasLocation(mLocation)) {
             var location = mLocation as Position.Location;
@@ -390,35 +400,28 @@ class watchairView extends WatchUi.View {
         } else {
             degrees = Storage.getValue("requestCoordinates");
         } 
-        if (degrees == null) {
-            // getNewPosition();            
-            return "No GPS (Last known)";            
-        }
+        if (degrees == null) { return "No GPS (Last known)"; }
                 
-        var degreesArray = degrees as Array<Number>;                
-        var lat = degreesArray[0] as Double;
-        var lon = degreesArray[1] as Double;
-        if (lat == 0.0 && lon == 0.0) {
-            return "No position (0,0)";
-        }
+        var degreesArray = degrees as Array<Double>;                
+        var lat = degreesArray[0];
+        var lon = degreesArray[1];
+        if (lat == 0.0 && lon == 0.0) { return "No position (0,0)"; }
 
         var phoneConnected = System.getDeviceSettings().phoneConnected; 
-        if (!phoneConnected) {
-            return "Phone not connected";
-        }
+        if (!phoneConnected) { return "Phone not connected"; }
 
         var now = Time.now().value();
         var lastRequestTime = Storage.getValue("requestTime") as Number?;
         if (lastRequestTime == null) { lastRequestTime = 0; }
         var diffSeconds = now - lastRequestTime;
-        if (diffSeconds < 10) { // @@ Setting
-            return "Too soon";
-        }
+        // @@ Setting
+        if (diffSeconds < 10) { return "Too soon"; }
+
         Storage.setValue("requestCoordinates", degrees);
         Storage.setValue("requestTime", Time.now().value());
 
         requestWeatherData(lat, lon, apiKey);
-        return "Request weather data";
+        return "Requesting data";
     }
 
     // OWM APIDOC: https://openweathermap.org/api/air-pollution
@@ -483,17 +486,39 @@ class watchairView extends WatchUi.View {
     function setMessage(message as String?) as Void {
         mMessage = message;
     }
-
-    function deg2rad(deg as Numeric) as Double or Float { return deg * (Math.PI / 180); }
     
-    // function secondsToShortTimeString(totalSeconds as Number) as String {
-    //   if (totalSeconds != null && totalSeconds instanceof Lang.Number) {
-    //     var hours = (totalSeconds / (60 * 60)).toNumber() % 24;
-    //     var minutes = (totalSeconds / 60.0).toNumber() % 60;
-    //     var seconds = (totalSeconds.toNumber() % 60);
+    function secondsToShortTimeString(totalSeconds as Number) as String {
+      if (totalSeconds != null && totalSeconds instanceof Lang.Number) {
+        var hours = (totalSeconds / (60 * 60)).toNumber() % 24;
+        var minutes = (totalSeconds / 60.0).toNumber() % 60;
+        var seconds = (totalSeconds.toNumber() % 60);
 
-    //     return hours.format("%01d") + ":" + minutes.format("%02d") + ":" + seconds.format("%02d");  
-    //   }
-    //   return "";
-    // }
+        return hours.format("%01d") + ":" + minutes.format("%02d") + ":" + seconds.format("%02d");  
+      }
+      return "";
+    }
+
+    function getRelativeToObservation(latObservation as Double, lonObservation as Double) as String {
+        if (!hasLocation(mLocation) || latObservation == 0.0 || lonObservation == 0.0 ) {
+          return "";
+        }
+
+        var currentLocation = mLocation as Location;
+        var degrees = currentLocation.toDegrees();
+        var latCurrent = degrees[0];
+        var lonCurrent = degrees[1];
+
+        var distanceMetric = "km";
+        var distance = getDistanceFromLatLonInKm(latCurrent, lonCurrent, latObservation, lonObservation);
+
+        var deviceSettings = System.getDeviceSettings();
+        if (deviceSettings.distanceUnits == System.UNIT_STATUTE) {
+          distance = distance / 1.609344; // mile
+          distanceMetric = "m";
+        }
+        var bearing = getRhumbLineBearing(latCurrent, lonCurrent, latObservation, lonObservation);
+        var compassDirection = getCompassDirection(bearing);
+
+        return format("$1$ $2$ ($3$)",[ distance.format("%.2f"), distanceMetric, compassDirection ]);
+      }
 }

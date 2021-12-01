@@ -44,6 +44,9 @@ class WatchairDelegate extends WatchUi.BehaviorDelegate {
                 return true;
             }
         }
+        if (k == WatchUi.KEY_UP || k == WatchUi.KEY_DOWN) {
+            WatchUi.requestUpdate();
+        }
 
         return WatchUi.BehaviorDelegate.onKey(keyEvent);
     }

@@ -2,13 +2,18 @@ import Toybox.Lang;
 import Toybox.System;
 import Toybox.Time;
 import Toybox.Graphics; 
-using WhatAppBase.Colors;
 
 class AirQuality {
+  const COLOR_WHITE_DK_BLUE_3 = 0xA9CCE3;
+  const COLOR_WHITE_LT_GREEN_3 = 0xA3E4D7;
+  const COLOR_WHITE_ORANGERED_2 = 0xFAE5D3;
+  const COLOR_WHITE_RED_3 = 0xF5B7B1;
+  const COLOR_WHITE_PURPLE_3 = 0xD7BDE2;
+    
   var AQM as AQMean = new AQMean();
-  
-  var lat as Float = 0.0f;
-  var lon as Float = 0.0f;
+
+  var lat as Double = 0.0d;
+  var lon as Double = 0.0d;
   // Carbon monoxide (CO), Nitrogen monoxide (NO), Nitrogen dioxide (NO2), Ozone
   // (O3), Sulphur dioxide (SO2), Ammonia (NH3), and particulates (PM2.5 and
   // PM10).
@@ -36,8 +41,8 @@ class AirQuality {
   function initialize() {}
 
   function reset()  as Void {
-    lat = 0.0f;
-    lon = 0.0f;
+    lat = 0.0d;
+    lon = 0.0d;
     //
     so2 = null;
     nh3 = null;
@@ -64,8 +69,8 @@ class AirQuality {
       if (data == null) { return; }
       var coord = data["coord"] as Dictionary; //<String, Float>;
       if (coord != null) {
-        lat = getValueAsFloat(coord, "lat", 0.0f) as Float;
-        lon = getValueAsFloat(coord, "lon", 0.0f) as Float;
+        lat = getValueAsDouble(coord, "lat", 0.0d) as Double;
+        lon = getValueAsDouble(coord, "lon", 0.0d) as Double;
       }
       var list = data["list"] as Array;
       if (list != null) {
@@ -105,32 +110,20 @@ class AirQuality {
     return "Very poor";
   }
 
-function airQualityAsColor() as ColorType? {
-    if (aqi == null || aqi <= 0 ) {
-      return null;
-    }
-    if (aqi == 1) {
-      return Colors.COLOR_WHITE_DK_BLUE_3;
-    }
-    if (aqi == 2) {
-      return Colors.COLOR_WHITE_LT_GREEN_3;
-    }
-    if (aqi == 3) {
-      return Colors.COLOR_WHITE_ORANGERED_2;
-    }
-    if (aqi == 4) {
-      return Colors.COLOR_WHITE_RED_3;
-    }
-    if (aqi == 5) {
-      return Colors.COLOR_WHITE_PURPLE_3;
-    }
+  function airQualityAsColor() as ColorType? {
+    if (aqi == null || aqi <= 0 ) { return null; }
+    if (aqi == 1) { return COLOR_WHITE_DK_BLUE_3; }
+    if (aqi == 2) { return COLOR_WHITE_LT_GREEN_3; }
+    if (aqi == 3) { return COLOR_WHITE_ORANGERED_2; }
+    if (aqi == 4) { return COLOR_WHITE_RED_3; }
+    if (aqi == 5) { return COLOR_WHITE_PURPLE_3; }
     return null;
-}
-  hidden function getValue(value as Numeric?, def as Numeric?) as Numeric? {
-    if (value == null) {
-      return def;
-    }
-    return value;
+  }
+
+   hidden function getValueAsDouble(data as Dictionary, key as String, defaultValue as Double?) as Double? {
+    var value = data.get(key);
+    if (value == null) { return defaultValue; }
+    return value as Double;
   }
 
   hidden function getValueAsFloat(data as Dictionary, key as String, defaultValue as Float?) as Float? {
@@ -144,4 +137,21 @@ function airQualityAsColor() as ColorType? {
     if (value == null) { return defaultValue; }
     return value as Number;
   }
+}
+
+// https://www.c40knowledgehub.org/s/article/WHO-Air-Quality-Guidelines?language=en_US
+// https://www.ser.nl/nl/thema/arbeidsomstandigheden/Grenswaarden-gevaarlijke-stoffen/Grenswaarden/Ozon    
+class AQMean {
+    // moderate values in microgram per m3: µg/m3 24-hour mean.
+    var NO2 as Number = 25;
+    var PM10 as Number = 45; 
+    var O3 as Number = 100; 
+    var PM2_5 as Number = 15; 
+
+    var SO2 as Number = 40; 
+    var NH3 as Number = 14000;
+    var CO as Number = 7;
+    var NO as Number = 2500;
+
+    function initialize() {}    
 }
