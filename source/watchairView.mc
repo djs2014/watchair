@@ -9,8 +9,8 @@ import Toybox.Lang;
 import Toybox.Math;
 
 class watchairView extends WatchUi.View {
+    var mAirQuality as AirQuality?;
     var mPhoneBitmap as BitmapType?;
-    
     var mLocation as Location?;
     var mAccuracy as Quality = Position.QUALITY_NOT_AVAILABLE;
     var mMessage as String?;
@@ -22,14 +22,16 @@ class watchairView extends WatchUi.View {
     var mColorValues as ColorType = Graphics.COLOR_WHITE;
     var mBackgroundColor as ColorType = Graphics.COLOR_BLACK;
 
-    function initialize() {
+    function initialize(airQuality as AirQuality) {
         View.initialize();
-        // @@ better icon of poly
-        mPhoneBitmap = WatchUi.loadResource(Rez.Drawables.PhoneIcon) as BitmapType;
+        mAirQuality = airQuality;
     }
 
     // Load your resources here
-    function onLayout(dc as Dc) as Void { }
+    function onLayout(dc as Dc) as Void {
+        // @@ better icon or poly
+        mPhoneBitmap = WatchUi.loadResource(Rez.Drawables.PhoneIcon) as BitmapType;
+    }
 
     function getNewPosition() as Void {        
         var info = Position.getInfo();
@@ -42,6 +44,19 @@ class watchairView extends WatchUi.View {
             setPosition(info);
         }
     }
+
+    function getNewWeatherData() as Void {
+        if (mGPSTimer == null) {
+            getNewPosition();
+        } else {
+            stopGPSTimer();           
+            // Be patient, use last known coordinates
+            var msg = checkRequestWeatherData();
+            setMessage(msg);
+        }
+        refreshUiDelayed(2000);
+    }
+    
 
     function startGPSTimer() as Void {
         if (mGPSTimer == null) {
@@ -78,9 +93,22 @@ class watchairView extends WatchUi.View {
             Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, setPositionCallBack);   
         } else if (setPosition(info)) { 
             stopGPSTimer(); 
-            setMessage("");
+            setMessage(null);
         }        
         WatchUi.requestUpdate();         
+    }
+    
+    function refreshUiDelayed(time as Lang.Number) as Void {
+        System.println("refresh delayed");
+        var timer = new Timer.Timer();
+        var callBack = self.method(:timerRefreshUICallback) as Method() as Void;
+        timer.start(callBack, time, false);    
+    }
+
+    function timerRefreshUICallback() as Void {
+        System.println("refresh delayed timerRefreshUICallback");
+        setMessage(null);   
+        WatchUi.requestUpdate(); 
     }
 
     function setPosition(info as Position.Info) as Boolean {
@@ -128,7 +156,7 @@ class watchairView extends WatchUi.View {
         dc.setColor(mBackgroundColor, mBackgroundColor);    
         dc.clear();
 
-        var airQuality = mAirQuality;
+        var airQuality = mAirQuality as AirQuality;
            
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
             
@@ -164,18 +192,30 @@ class watchairView extends WatchUi.View {
             dc.drawText(dc.getWidth() /2 , lineHeight * 2, Graphics.FONT_TINY, "Air quality", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );            
         }
         // @@ TODO 
-        var airQualityColor = airQuality.airQualityAsColor();     
+        // var airQualityColor = airQuality.airQualityAsColor();     
+
         dc.drawText(dc.getWidth() /2 , lineHeight * 3, Graphics.FONT_SMALL, airQuality.airQuality(), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
         // @@ x:xx:xx obs time ago
+        // if (airQuality.observationTime != null) {
+        //     var obsTime = airQuality.observationTime as Time.Moment;
+        //     var elapsedSeconds = Time.now().value() - obsTime.value();
+        //     if (elapsedSeconds > 0) {
+        //         var ago = secondsToShortTimeString(elapsedSeconds) + " ago";
+        //         dc.drawText(dc.getWidth() /2 , lineHeight * 4, Graphics.FONT_XTINY, ago, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+        //     }
+        // }
         // @@ distance + bearing last known to observation location
         
+        // @@ units μg/m3 or ppm
+        var units = "μg/m3";
+        dc.drawText(dc.getWidth() /2 , lineHeight * 5, Graphics.FONT_XTINY, units, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
     }
     
     function renderAirQualityStats(dc as Dc, airQuality as AirQuality) as Void {
         if(dc has :setAntiAlias) {
             dc.setAntiAlias(true);
         }
-        var AQmeanValue = mAQIndex as AQIndex;
+        var mean = airQuality.AQM as AQMean;
         var centerX = dc.getWidth() / 2;
         var centerY = dc.getHeight() / 2;
         var widthCell = 28;
@@ -195,31 +235,31 @@ class watchairView extends WatchUi.View {
             if (idx == 0) {
                 label = "NO2";
                 value = airQuality.no2;
-                max = AQmeanValue.NO2;
+                max = mean.NO2;
             } else if (idx == 1) {
                 label = "PM10";
                 value = airQuality.pm10;
-                max = AQmeanValue.PM10;
+                max = mean.PM10;
             } else if (idx == 2) {
                 label = "O3";
                 value = airQuality.o3;
-                max = AQmeanValue.O3;
+                max = mean.O3;
             } else if (idx == 3) {
                 label = "PM2.5";
                 value = airQuality.pm2_5;
-                max = AQmeanValue.PM2_5;
+                max = mean.PM2_5;
             } else if (idx == 4) {
                 label = "SO2";                
                 value = airQuality.so2;
-                max = AQmeanValue.SO2;
+                max = mean.SO2;
             } else if (idx == 5) {
                 label = "NH3";                
                 value = airQuality.nh3;
-                max = AQmeanValue.NH3;
+                max = mean.NH3;
             } else if (idx == 6) {
                 label = "CO";                
                 value = airQuality.co;
-                max = AQmeanValue.CO;
+                max = mean.CO;
             } else if (idx == 7) {
                 label = "NO";                
                 value = airQuality.no;
@@ -324,7 +364,7 @@ class watchairView extends WatchUi.View {
         if (phoneConnected) {
             y = 1;
             x = m + 5; 
-            dc.drawBitmap(x, y, mPhoneBitmap);
+            if (mPhoneBitmap != null) { dc.drawBitmap(x, y, mPhoneBitmap); }
         }
         
     }
@@ -334,17 +374,6 @@ class watchairView extends WatchUi.View {
     // state of this View here. This includes freeing resources from
     // memory.
     function onHide() as Void {
-    }
-
-    function getNewWeatherData() as Void {
-        if (mGPSTimer == null) {
-            getNewPosition();
-        } else {
-            stopGPSTimer();           
-            // Be patient, use last known coordinates
-            var msg = checkRequestWeatherData();
-            setMessage(msg);  
-        }
     }
     
     function checkRequestWeatherData() as String? {
@@ -388,7 +417,7 @@ class watchairView extends WatchUi.View {
         Storage.setValue("requestCoordinates", degrees);
         Storage.setValue("requestTime", Time.now().value());
 
-        requestWeatherData(lat, lon, apiKey, "", "");
+        requestWeatherData(lat, lon, apiKey);
         return "Request weather data";
     }
 
@@ -396,19 +425,17 @@ class watchairView extends WatchUi.View {
     // - current
     // https://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API
     // key}
-    function requestWeatherData(lat as Double, lon as Double, apiKey as String, proxy as String, proxyApiKey as String) as Void {
-        var url = proxy;
-        if (proxy.length() == 0) {
+    function requestWeatherData(lat as Double, lon as Double, apiKey as String) as Void {        
         var base = "https://api.openweathermap.org/data/2.5/air_pollution";
-            url = Lang.format("$1$?lat=$2$&lon=$3$&appid=$4$", [ base, lat, lon, apiKey ]);
-        }
+        var url = Lang.format("$1$?lat=$2$&lon=$3$&appid=$4$", [ base, lat, lon, apiKey ]);
+        
         System.println("requestWeatherData url[" + url + "]");
 
         var options = {
                 :method => Communications.HTTP_REQUEST_METHOD_GET,
                 :headers => {
-                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON,
-                    "Authorization" => proxyApiKey
+                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON
+                    // "Authorization" => proxyApiKey
                     },
                 :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON	
             };
@@ -428,7 +455,8 @@ class watchairView extends WatchUi.View {
             // Background: list: [{components=>{so2=>4.830000, nh3=>0.840000,
             // pm10=>21.190001, no2=>39.070000, co=>387.190002, no=>16.760000,
             // o3=>1.520000, pm2_5=>18.580000}, main=>{aqi=>2}, dt=>1636639200}]            
-            mAirQuality.updateData(responseData);
+            var airQuality = mAirQuality as AirQuality;
+            airQuality.updateData(responseData);
             setMessage(null);                          
             } catch (ex) {
                 ex.printStackTrace();
@@ -457,4 +485,15 @@ class watchairView extends WatchUi.View {
     }
 
     function deg2rad(deg as Numeric) as Double or Float { return deg * (Math.PI / 180); }
+    
+    // function secondsToShortTimeString(totalSeconds as Number) as String {
+    //   if (totalSeconds != null && totalSeconds instanceof Lang.Number) {
+    //     var hours = (totalSeconds / (60 * 60)).toNumber() % 24;
+    //     var minutes = (totalSeconds / 60.0).toNumber() % 60;
+    //     var seconds = (totalSeconds.toNumber() % 60);
+
+    //     return hours.format("%01d") + ":" + minutes.format("%02d") + ":" + seconds.format("%02d");  
+    //   }
+    //   return "";
+    // }
 }

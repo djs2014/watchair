@@ -1,4 +1,6 @@
 --> in menu 
+serialize last aq data
+
 show phone / gps level icons??
 memory issue..
 

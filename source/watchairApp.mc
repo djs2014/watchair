@@ -5,14 +5,13 @@ import Toybox.Time;
 import Toybox.System;
 import Toybox.Math;
 
-var mAirQuality as AirQuality = new AirQuality();
-var mAQIndex as AQIndex = new AQIndex();
 var mApiKey as String? = "";
 
 class watchairApp extends Application.AppBase {
+    var mAirQuality as AirQuality?;
 
     function initialize() {
-        AppBase.initialize();
+      AppBase.initialize();
     }
 
     // onStart() is called on application start up
@@ -27,32 +26,37 @@ class watchairApp extends Application.AppBase {
 
     // Return the initial view of your application here
     function getInitialView() as Array<Views or InputDelegates>? {        
-        loadUserSettings();
-        var view = new watchairView();        
-        return [ view, new $.WatchairDelegate(view)] as Array<Views or InputDelegates>;
+      if (mAirQuality == null) { mAirQuality = new AirQuality(); }
+      var airQuality = mAirQuality as AirQuality;
+
+      loadUserSettings(airQuality);
+      var view = new watchairView(airQuality);        
+      return [ view, new $.WatchairDelegate(view)] as Array<Views or InputDelegates>;
     }
 
     function onSettingsChanged() { 
-      loadUserSettings();
+      if (mAirQuality == null) { mAirQuality = new AirQuality(); }
+      var airQuality = mAirQuality as AirQuality;
+      loadUserSettings(airQuality);
       AppBase.onSettingsChanged();
     }
 
-    function loadUserSettings() as Void {
+    function loadUserSettings(airQuality as AirQuality) as Void {
       try {
         System.println("Load usersettings");
-
+        
         // var x = Toybox.Application.Properties;
         var val = Toybox.Application.Properties.getValue("pollutionLimitNO2"); // as Lang.Number;
                 
         mApiKey = getStringProperty("openWeatherAPIKey", "");                        
-        mAQIndex.NO2 = getNumberProperty("pollutionLimitNO2", mAQIndex.NO2);
-        mAQIndex.PM10 = getNumberProperty("pollutionLimitPM10", mAQIndex.PM10);
-        mAQIndex.O3 = getNumberProperty("pollutionLimitO3", mAQIndex.O3);
-        mAQIndex.PM2_5 = getNumberProperty("pollutionLimitPM2_5", mAQIndex.PM2_5);
-        mAQIndex.SO2 = getNumberProperty("pollutionLimitSO2", mAQIndex.SO2);
-        mAQIndex.NH3 = getNumberProperty("pollutionLimitNH3", mAQIndex.NH3);
-        mAQIndex.CO = getNumberProperty("pollutionLimitCO", mAQIndex.CO);
-        mAQIndex.NO = getNumberProperty("pollutionLimitNO", mAQIndex.NO);    
+        airQuality.AQM.NO2 = getNumberProperty("pollutionLimitNO2", airQuality.AQM.NO2);
+        airQuality.AQM.PM10 = getNumberProperty("pollutionLimitPM10", airQuality.AQM.PM10);
+        airQuality.AQM.O3 = getNumberProperty("pollutionLimitO3", airQuality.AQM.O3);
+        airQuality.AQM.PM2_5 = getNumberProperty("pollutionLimitPM2_5", airQuality.AQM.PM2_5);
+        airQuality.AQM.SO2 = getNumberProperty("pollutionLimitSO2", airQuality.AQM.SO2);
+        airQuality.AQM.NH3 = getNumberProperty("pollutionLimitNH3", airQuality.AQM.NH3);
+        airQuality.AQM.CO = getNumberProperty("pollutionLimitCO", airQuality.AQM.CO);
+        airQuality.AQM.NO = getNumberProperty("pollutionLimitNO", airQuality.AQM.NO);    
     
         System.println("loadUserSettings loaded");
       } catch (ex) {

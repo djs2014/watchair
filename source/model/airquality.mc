@@ -5,6 +5,8 @@ import Toybox.Graphics;
 using WhatAppBase.Colors;
 
 class AirQuality {
+  var AQM as AQMean = new AQMean();
+  
   var lat as Float = 0.0f;
   var lon as Float = 0.0f;
   // Carbon monoxide (CO), Nitrogen monoxide (NO), Nitrogen dioxide (NO2), Ozone

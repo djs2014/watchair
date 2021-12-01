@@ -3,7 +3,7 @@ import Toybox.System;
 
 // https://www.c40knowledgehub.org/s/article/WHO-Air-Quality-Guidelines?language=en_US
 // https://www.ser.nl/nl/thema/arbeidsomstandigheden/Grenswaarden-gevaarlijke-stoffen/Grenswaarden/Ozon    
-class AQIndex {
+class AQMean {
     // moderate values in microgram per m3: µg/m3 24-hour mean.
     var NO2 as Number = 25;
     var PM10 as Number = 45; 
