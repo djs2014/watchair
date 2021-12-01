@@ -1,7 +1,14 @@
-api key not saved? -> omdat ie global is -> save in de view ...oid
-waarschijnlijk opnieuw geinitialiseerd?
 --> in menu 
-show phone / gps level icons
+show phone / gps level icons??
+memory issue..
+
+?? toglle ppm / microm3
+colors text
+keep in memory aq data
+show x:x:x ago
+xx km (WSW)
+alert/vibrate/beep > level
+remove msg after x seconds
 
 - cleanup | remove unused code - low memory
 - test menu 2 items

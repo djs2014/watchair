@@ -9,7 +9,6 @@ import Toybox.Lang;
 import Toybox.Math;
 
 class watchairView extends WatchUi.View {
-    var mPhoneConnected as Boolean = false;    
     var mPhoneBitmap as BitmapType?;
     
     var mLocation as Location?;
@@ -25,6 +24,7 @@ class watchairView extends WatchUi.View {
 
     function initialize() {
         View.initialize();
+        // @@ better icon of poly
         mPhoneBitmap = WatchUi.loadResource(Rez.Drawables.PhoneIcon) as BitmapType;
     }
 
@@ -36,8 +36,7 @@ class watchairView extends WatchUi.View {
         if (info == null || info.accuracy == Position.QUALITY_NOT_AVAILABLE || !hasLocation(info.position)) {
             setMessage("Waiting for GPS");            
             var setPositionCallBack = self.method(:setPosition) as Method(info as Position.Info) as Void;
-            Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, setPositionCallBack);            
-            // Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, method(:setPosition));            
+            Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, setPositionCallBack);                        
             startGPSTimer();
         } else {
             setPosition(info);
@@ -63,7 +62,6 @@ class watchairView extends WatchUi.View {
         mGPSTimerCount = mGPSTimerCount - 1;
         if (mGPSTimerCount < 0) { 
             stopGPSTimer();
-            // Use last known coordinates
             var msg = checkRequestWeatherData();
             setMessage(msg); 
             WatchUi.requestUpdate();   
@@ -86,9 +84,6 @@ class watchairView extends WatchUi.View {
     }
 
     function setPosition(info as Position.Info) as Boolean {
-        // if (info.accuracy == Position.QUALITY_NOT_AVAILABLE) {
-        //     return false;
-        // }
         if (info has :accuracy && info.accuracy != null) {
             mAccuracy = info.accuracy;                
         }        
@@ -129,16 +124,12 @@ class watchairView extends WatchUi.View {
     }
 
     // Update the view
-    function onUpdate(dc as Dc) as Void {
-        mPhoneConnected = System.getDeviceSettings().phoneConnected; 
-        // Call the parent onUpdate function to redraw the layout
-        // View.onUpdate(dc);
+    function onUpdate(dc as Dc) as Void {        
         dc.setColor(mBackgroundColor, mBackgroundColor);    
         dc.clear();
 
         var airQuality = mAirQuality;
-        var airQualityColor = airQuality.airQualityAsColor();        
-        // if (airQualityColor != null) { mColor = Graphics.COLOR_BLACK; } 
+           
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
             
         // Stats
@@ -169,9 +160,14 @@ class watchairView extends WatchUi.View {
         if (mMessage != null) {
             var message = mMessage as String;
             dc.drawText(dc.getWidth() /2 , lineHeight * 2, Graphics.FONT_TINY, message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );            
+        } else {
+            dc.drawText(dc.getWidth() /2 , lineHeight * 2, Graphics.FONT_TINY, "Air quality", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );            
         }
-        // @@ distance + bearing last known to observation location
+        // @@ TODO 
+        var airQualityColor = airQuality.airQualityAsColor();     
         dc.drawText(dc.getWidth() /2 , lineHeight * 3, Graphics.FONT_SMALL, airQuality.airQuality(), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+        // @@ x:xx:xx obs time ago
+        // @@ distance + bearing last known to observation location
         
     }
     
@@ -254,7 +250,11 @@ class watchairView extends WatchUi.View {
             labelHeight = dc.getFontHeight(fontLabel);
             var yLabel = y;
             if (fontValue != null) { yLabel = yLabel - labelHeight / 3; }
-            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            if (perc>=50) {
+                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            } else {
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            }
             dc.drawText(x, yLabel , fontLabel, label, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
 
@@ -320,7 +320,8 @@ class watchairView extends WatchUi.View {
             dc.fillRectangle(barX, y, barWidth, bottomY);
         }
 
-        if (mPhoneConnected) {
+        var phoneConnected = System.getDeviceSettings().phoneConnected; 
+        if (phoneConnected) {
             y = 1;
             x = m + 5; 
             dc.drawBitmap(x, y, mPhoneBitmap);
@@ -372,8 +373,8 @@ class watchairView extends WatchUi.View {
             return "No position (0,0)";
         }
 
-        mPhoneConnected = System.getDeviceSettings().phoneConnected; 
-        if (!mPhoneConnected) {
+        var phoneConnected = System.getDeviceSettings().phoneConnected; 
+        if (!phoneConnected) {
             return "Phone not connected";
         }
 

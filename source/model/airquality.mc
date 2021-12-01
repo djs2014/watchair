@@ -100,7 +100,7 @@ class AirQuality {
     } else if (aqi == 4) {
       return "Poor";
     } 
-    return "Very poo";
+    return "Very poor";
   }
 
 function airQualityAsColor() as ColorType? {
