@@ -20,13 +20,13 @@ class WatchairMenu2Delegate extends WatchUi.Menu2InputDelegate {
     //! @param item The selected menu item
     public function onSelect(item as MenuItem) as Void {
         var id = item.getId() as String;
-        if (id.equals("toggle")) {
+        if (id.equals("display")) {
             // When the toggle menu item is selected, push a new menu that demonstrates
             // left and right toggles with automatic substring toggles.
-            var toggleMenu = new WatchUi.Menu2({:title=>"Toggles"});
-            toggleMenu.addItem(new WatchUi.ToggleMenuItem("Item 1", {:enabled=>"Left Toggle: on", :disabled=>"Left Toggle: off"}, "left", false, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
-            toggleMenu.addItem(new WatchUi.ToggleMenuItem("Item 2", {:enabled=>"Right Toggle: on", :disabled=>"Right Toggle: off"}, "right", false, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_RIGHT}));
-            toggleMenu.addItem(new WatchUi.ToggleMenuItem("Item 3", {:enabled=>"Toggle: on", :disabled=>"Toggle: off"}, "default", true, null));
+            var toggleMenu = new WatchUi.Menu2({:title=>"Display"});
+            toggleMenu.addItem(new WatchUi.ToggleMenuItem("Observation time", {:enabled=>"Show", :disabled=>"Hide"}, "obsTimeShow", mObsTimeShow, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
+            toggleMenu.addItem(new WatchUi.ToggleMenuItem("Observation location", {:enabled=>"Show", :disabled=>"Hide"}, "obsLocationShow", mObsLocationShow, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
+            toggleMenu.addItem(new WatchUi.ToggleMenuItem("Observation distance", {:enabled=>"Show", :disabled=>"Hide"}, "obsDistanceShow", mObsDistanceShow, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
             WatchUi.pushView(toggleMenu, new $.Menu2SampleSubMenuDelegate(), WatchUi.SLIDE_UP);
         } else if (id.equals("check")) {
             // When the check menu item is selected, push a new menu that demonstrates
@@ -66,6 +66,12 @@ class Menu2SampleSubMenuDelegate extends WatchUi.Menu2InputDelegate {
     //! Handle an item being selected
     //! @param item The selected menu item
     public function onSelect(item as MenuItem) as Void {
+
+        if (item instanceof WatchUi.ToggleMenuItem) {
+            var property = item.getId() as String;            
+            Application.Properties.setValue(property, (item as ToggleMenuItem).isEnabled() );
+        }
+
         // For IconMenuItems, we will change to the next icon state.
         // This demonstrates a custom toggle operation using icons.
         // Static icons can also be used in this layout.
@@ -77,6 +83,7 @@ class Menu2SampleSubMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     //! Handle the back key being pressed
     public function onBack() as Void {
+        updateWatchSettings();
         WatchUi.popView(WatchUi.SLIDE_DOWN);
     }
 

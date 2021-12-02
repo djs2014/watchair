@@ -7,9 +7,9 @@ import Toybox.Math;
 
 var mApiKey as String? = "";
 var mShowCurrentLocation as Boolean = true;
-var mShowObsTime as Boolean = true;
-var mShowObsLocation as Boolean = true;
-var mShowObsDistance as Boolean = true;
+var mObsTimeShow as Boolean = true;
+var mObsLocationShow as Boolean = true;
+var mObsDistanceShow as Boolean = true;
 
 class watchairApp extends Application.AppBase {
     var mAirQuality as AirQuality?;
@@ -35,7 +35,7 @@ class watchairApp extends Application.AppBase {
 
       loadUserSettings(airQuality);
       var view = new watchairView(airQuality);        
-      return [ view, new $.WatchairDelegate(view)] as Array<Views or InputDelegates>;
+      return [ view, new $.WatchairDelegate(self, view)] as Array<Views or InputDelegates>;
     }
 
     function onSettingsChanged() { 
@@ -61,13 +61,17 @@ class watchairApp extends Application.AppBase {
         airQuality.AQM.NH3 = getNumberProperty("pollutionLimitNH3", airQuality.AQM.NH3);
         airQuality.AQM.CO = getNumberProperty("pollutionLimitCO", airQuality.AQM.CO);
         airQuality.AQM.NO = getNumberProperty("pollutionLimitNO", airQuality.AQM.NO);    
-    
+
+        updateWatchSettings();
         System.println("loadUserSettings loaded");
       } catch (ex) {
         ex.printStackTrace();
       }
     }
     
+  
+   
+
     function getNumberProperty(key as Application.PropertyKeyType, dflt as Lang.Number) as Lang.Number {
       try {
         var val = Toybox.Application.Properties.getValue(key) as Lang.Number;
@@ -95,6 +99,24 @@ class watchairApp extends Application.AppBase {
 
 }
 
+function updateWatchSettings() as Void {
+        mObsTimeShow = getBooleanProperty("obsTimeShow", mObsTimeShow);    
+        mObsLocationShow = getBooleanProperty("obsLocationShow", mObsLocationShow);    
+        mObsDistanceShow = getBooleanProperty("obsDistanceShow", mObsDistanceShow);    
+}
+
+function getBooleanProperty(key as Application.PropertyKeyType, dflt as Lang.Boolean) as Lang.Boolean {
+  try {
+    var val = Toybox.Application.Properties.getValue(key) as Lang.Boolean;
+    if (val != null && val instanceof Lang.Boolean) {
+      return val;
+    }
+  } catch (e) {
+    return dflt;
+  }
+  return dflt;
+}
+  
 function getApp() as watchairApp {
     return Application.getApp() as watchairApp;
 }

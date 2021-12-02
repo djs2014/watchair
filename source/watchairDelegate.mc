@@ -11,11 +11,13 @@ import Toybox.WatchUi;
 //! This delegate is for the main page of our application that pushes the menu
 //! when the onMenu() behavior is received.
 class WatchairDelegate extends WatchUi.BehaviorDelegate {
+    var app as watchairApp?;
     var view as watchairView?;
 
     //! Constructor
-    public function initialize(v as watchairView) {
+    public function initialize(a as watchairApp, v as watchairView) {
         BehaviorDelegate.initialize();
+        app = a;
         view = v;        
     }
 
@@ -26,7 +28,7 @@ class WatchairDelegate extends WatchUi.BehaviorDelegate {
         var menu = new WatchUi.Menu2({:title=>new $.DrawableMenuTitle()});
 
         // Add menu items for demonstrating toggles, checkbox and icon menu items
-        menu.addItem(new WatchUi.MenuItem("Toggles", "sublabel", "toggle", null));
+        menu.addItem(new WatchUi.MenuItem("Configuration", "display", "display", null));
         menu.addItem(new WatchUi.MenuItem("Checkboxes", null, "check", null));
         menu.addItem(new WatchUi.MenuItem("Icons", null, "icon", null));
         menu.addItem(new WatchUi.MenuItem("Custom", null, "custom", null));

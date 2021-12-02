@@ -9,4 +9,8 @@
 	<property id="pollutionLimitNH3" type="number">14000</property>	
 	<property id="pollutionLimitCO" type="number">7</property>	
 	<property id="pollutionLimitNO" type="number">2500</property>	
+
+	<property id="obsTimeShow" type="boolean">true</property>	
+	<property id="obsLocationShow" type="boolean">true</property>	
+	<property id="obsDistanceShow" type="boolean">true</property>	
 </properties>

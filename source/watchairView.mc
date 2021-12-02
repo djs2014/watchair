@@ -35,7 +35,7 @@ class watchairView extends WatchUi.View {
 
     function getNewPosition() as Void {        
         var info = Position.getInfo();
-        if (info == null || info.accuracy == Position.QUALITY_NOT_AVAILABLE || !hasLocation(info.position)) {
+        if (info == null || info.accuracy == Position.QUALITY_NOT_AVAILABLE || !hasLocation(info.position, info.accuracy)) {
             setMessage("Waiting for GPS");            
             var setPositionCallBack = self.method(:setPositionAndGetWeatherData) as Method(info as Position.Info) as Void;
             Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, setPositionCallBack);                        
@@ -87,7 +87,7 @@ class watchairView extends WatchUi.View {
         if (info != null && info has :accuracy && info.accuracy != null) {
             mAccuracy = info.accuracy;                
         }        
-        if (info == null || info.accuracy == Position.QUALITY_NOT_AVAILABLE || !hasLocation(info.position)) {
+        if (info == null || info.accuracy == Position.QUALITY_NOT_AVAILABLE || !hasLocation(info.position, info.accuracy)) {
             setMessage("Waiting (" + mGPSTimerCount.format("%0d") + ") for GPS");
             var setPositionCallBack = self.method(:setPositionAndGetWeatherData) as Method(info as Position.Info) as Void;
             Position.enableLocationEvents(Position.LOCATION_ONE_SHOT, setPositionCallBack);   
@@ -119,26 +119,27 @@ class watchairView extends WatchUi.View {
     }
 
     function setPosition(info as Position.Info) as Boolean {
+        mAccuracy = Position.QUALITY_NOT_AVAILABLE;
         if (info has :accuracy && info.accuracy != null) {
             mAccuracy = info.accuracy;                
         }        
         if (info has :position && info.position != null) {              
             var location = info.position as Location;
-            if (!hasLocation(location)) { return false; }
+            if (!hasLocation(location, mAccuracy)) { return false; }
             mLocation = location;
             return true;    
         } 
         return false; 
     }
 
-    function hasLocation(location as Position.Location?) as Boolean {
-        if (location == null) { return false; }
+    function hasLocation(location as Position.Location?, accuray as Position.Quality) as Boolean {
+        if (location == null || accuray == null) { return false; }
 
         var newLocation = location as Location;
         var degrees = newLocation.toDegrees();
 
         //System.println("Location lat/lon: " + degrees + " accuracy: " + mAccuracy);
-        return degrees[0] != 0 && degrees[1] != 0;                 
+        return degrees[0] != 0 && degrees[1] != 0 && accuray != Position.QUALITY_NOT_AVAILABLE;                 
     }
     
     // Called when this View is brought to the foreground. Restore
@@ -161,6 +162,9 @@ class watchairView extends WatchUi.View {
         dc.setColor(mBackgroundColor, mBackgroundColor);    
         dc.clear();
 
+        // Get latest gps data
+        setPosition(Position.getInfo());
+
         var airQuality = mAirQuality as AirQuality;
            
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
@@ -171,10 +175,9 @@ class watchairView extends WatchUi.View {
         renderAirQualityStats(dc, airQuality);
 
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
-        // Get latest gps data
-        setPosition(Position.getInfo());
+        
         var degrees = null;
-        if (hasLocation(mLocation)) {
+        if (hasLocation(mLocation, mAccuracy)) {  
             // Current
             var location = mLocation as Position.Location;
             degrees = location.toDegrees();            
@@ -209,12 +212,12 @@ class watchairView extends WatchUi.View {
         
 
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        var startYAdditional = lineHeight * 4;
+        var startYAdditional = lineHeight * 3.5;
         var lineHeightAdditional = dc.getFontHeight(Graphics.FONT_XTINY) * 0.8;
         var line = 1;
         var xA = dc.getWidth() /2;
         var yA = startYAdditional + lineHeightAdditional;
-        if (mShowObsTime && airQuality.observationTime != null) {
+        if (mObsTimeShow && airQuality.observationTime != null) {
             var obsTime = airQuality.observationTime as Time.Moment;
             var elapsedSeconds = Time.now().value() - obsTime.value();
             if (elapsedSeconds > 0) {
@@ -224,7 +227,7 @@ class watchairView extends WatchUi.View {
             }
         }
         
-        if (mShowObsLocation) {
+        if (mObsLocationShow) {
             coordinates = airQuality.lat.format("%0.4f") + "," + airQuality.lon.format("%0.4f");  
             var currentCoordWidth = dc.getTextWidthInPixels(coordinates, Graphics.FONT_XTINY);
             yA = startYAdditional + lineHeightAdditional * line;
@@ -232,7 +235,7 @@ class watchairView extends WatchUi.View {
             dc.drawText(xA , yA, Graphics.FONT_XTINY, coordinates, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );    
             line = line + 1;
         }
-        if (mShowObsDistance) {
+        if (mObsDistanceShow) {
             var distToObs = getRelativeToObservation(airQuality.lat, airQuality.lon);
             if (distToObs.length() > 0) {  
                 yA = startYAdditional + lineHeightAdditional * line;          
@@ -243,7 +246,7 @@ class watchairView extends WatchUi.View {
         // @@ units μg/m3 or ppm
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
         var units = "μg/m3";
-        yA = startYAdditional + lineHeightAdditional * line;
+        yA = startYAdditional + lineHeightAdditional * 4;
         dc.drawText(xA , yA, Graphics.FONT_XTINY, units, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
     }
     
@@ -417,7 +420,7 @@ class watchairView extends WatchUi.View {
         if (apiKey.length() == 0) { return "No api key"; }    
 
         var degrees = null;
-        if (hasLocation(mLocation)) {
+        if (hasLocation(mLocation, mAccuracy)) {
             var location = mLocation as Position.Location;
             degrees = location.toDegrees();
         } else {
@@ -522,7 +525,7 @@ class watchairView extends WatchUi.View {
     }
 
     function getRelativeToObservation(latObservation as Double, lonObservation as Double) as String {
-        if (!hasLocation(mLocation) || latObservation == 0.0 || lonObservation == 0.0 ) {
+        if (!hasLocation(mLocation, mAccuracy) || latObservation == 0.0 || lonObservation == 0.0 ) {
           return "";
         }
 

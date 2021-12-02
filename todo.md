@@ -1,60 +1,20 @@
-show: 
-(in settings: toggle show -- )
-    obs: location  "%0.4f"
-    current: location
+quality unknown in haslocation
+-> red + 180,180?
+
 exit menu -> do not request new data!
-top: current position
-middle: obs position
+- showhide toggle
+    Observation time
+    Observation location
+    Observeration distance
+    Toggle units  ppm / microm3
+beep alerts
 
---> in menu 
-serialize last aq data
-
+? serialize last aq data
+    ? keep in memory aq data
 show phone / gps level icons??
 memory issue.. prg <= 112 kb
-
-?? toglle ppm / microm3
-colors text
-keep in memory aq data
-show x:x:x ago
-xx km (WSW)
+? colors text
 alert/vibrate/beep > level
-remove msg after x seconds
-
 - cleanup | remove unused code - low memory
-- test menu 2 items
-    x - see menutest  app
-- load settings code
-- on show view -> get position etc .. get data
-    - gps quality 
-        - > see basic custom show the options + indicate selected
-        -> handle select
-
-    - update freq / -1 == off -2 == automatic / 5 / 10 / 20 / 30 / 60
-    - nox levels
-    - api key -> via settings easier
-
-- 
-store last known gps coord
-get gps
-- not found use stored values
-- indicate this
-- show gps coord on screen
-- distance to observation
-- phone connected
-- call to owm + indicate callpending time
+docu
   - on tap / on
-- display data
-
--- if no position found -> use timer for x times -> until onBack pressed -> stop timer
-using Toybox.Position;
-using Toybox.System;
-using Toybox.Timer;
-var dataTimer = new Timer.Timer();
-dataTimer.start(method(:timerCallback), 1000, true); // A one-second timer
-function timerCallback() {
-    var positionInfo = Position.getInfo();
-    if (positionInfo has :altitude && positionInfo.altitude != null) {
-        var altitude = positionInfo.altitude;
-        System.println("Altitude: " + altitude);
-    }
-}
