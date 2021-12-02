@@ -1,17 +1,10 @@
-quality unknown in haslocation
--> red + 180,180?
 
-exit menu -> do not request new data!
-- showhide toggle
-    x Observation time
-    x Observation location
-    x Observeration distance
-    Toggle units  ppm / microm3
+
 beep alerts
+show phone / gps level icons??
 
 ? serialize last aq data
     ? keep in memory aq data
-show phone / gps level icons??
 memory issue.. prg <= 112 kb
 ? colors text
 alert/vibrate/beep > level

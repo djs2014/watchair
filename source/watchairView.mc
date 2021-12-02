@@ -168,8 +168,7 @@ class watchairView extends WatchUi.View {
            
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
             
-        // Stats
-        drawStats(dc);
+        drawConnectionStats(dc);
 
         renderAirQualityStats(dc, airQuality);
 
@@ -375,7 +374,7 @@ class watchairView extends WatchUi.View {
         }
 
 
-    function drawStats(dc as Dc) as Void {
+    function drawConnectionStats(dc as Dc) as Void {
         var m = dc.getWidth() / 2; 
         var y = 1;
         var width = 40;
