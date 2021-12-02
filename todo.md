@@ -1,8 +1,16 @@
+show: 
+(in settings: toggle show -- )
+    obs: location  "%0.4f"
+    current: location
+exit menu -> do not request new data!
+top: current position
+middle: obs position
+
 --> in menu 
 serialize last aq data
 
 show phone / gps level icons??
-memory issue..
+memory issue.. prg <= 112 kb
 
 ?? toglle ppm / microm3
 colors text

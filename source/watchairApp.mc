@@ -6,6 +6,10 @@ import Toybox.System;
 import Toybox.Math;
 
 var mApiKey as String? = "";
+var mShowCurrentLocation as Boolean = true;
+var mShowObsTime as Boolean = true;
+var mShowObsLocation as Boolean = true;
+var mShowObsDistance as Boolean = true;
 
 class watchairApp extends Application.AppBase {
     var mAirQuality as AirQuality?;

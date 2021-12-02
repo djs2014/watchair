@@ -186,11 +186,15 @@ class watchairView extends WatchUi.View {
         var coordinates = "-- --";
         if (degrees != null) {
             var degreesArray = degrees as Array<Double>;
-            coordinates = degreesArray[0].format("%02f") + "," + degreesArray[1].format("%02f");            
+            coordinates = degreesArray[0].format("%0.4f") + "," + degreesArray[1].format("%0.4f");            
         }
         var lineHeight = dc.getFontHeight(Graphics.FONT_SMALL);
-        dc.drawText(dc.getWidth() /2 , lineHeight, Graphics.FONT_XTINY, coordinates, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
-        
+        if (mShowCurrentLocation) {
+            var currentCoordWidth = dc.getTextWidthInPixels(coordinates, Graphics.FONT_XTINY);
+            dc.fillCircle(dc.getWidth() /2 - currentCoordWidth/2 - 7, lineHeight, 5);
+            dc.drawText(dc.getWidth() /2 , lineHeight, Graphics.FONT_XTINY, coordinates, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
+        }
+
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
         if (mMessage != null) {
             var message = mMessage as String;
@@ -203,25 +207,44 @@ class watchairView extends WatchUi.View {
 
         dc.drawText(dc.getWidth() /2 , lineHeight * 3, Graphics.FONT_SMALL, airQuality.airQuality(), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
         
+
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         var startYAdditional = lineHeight * 4;
-        var lineHeightAdditional = dc.getFontHeight(Graphics.FONT_XTINY);
-        if (airQuality.observationTime != null) {
+        var lineHeightAdditional = dc.getFontHeight(Graphics.FONT_XTINY) * 0.8;
+        var line = 1;
+        var xA = dc.getWidth() /2;
+        var yA = startYAdditional + lineHeightAdditional;
+        if (mShowObsTime && airQuality.observationTime != null) {
             var obsTime = airQuality.observationTime as Time.Moment;
             var elapsedSeconds = Time.now().value() - obsTime.value();
             if (elapsedSeconds > 0) {
                 var ago = secondsToShortTimeString(elapsedSeconds) + " ago";
-                dc.drawText(dc.getWidth() /2 , startYAdditional + lineHeightAdditional, Graphics.FONT_XTINY, ago, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+                dc.drawText(xA , yA, Graphics.FONT_XTINY, ago, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+                line = line + 1;
             }
         }
         
-        var distToObs = getRelativeToObservation(airQuality.lat, airQuality.lon);
-        if (distToObs.length() > 0) {            
-            dc.drawText(dc.getWidth() /2 , startYAdditional + lineHeightAdditional * 2, Graphics.FONT_XTINY, distToObs, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+        if (mShowObsLocation) {
+            coordinates = airQuality.lat.format("%0.4f") + "," + airQuality.lon.format("%0.4f");  
+            var currentCoordWidth = dc.getTextWidthInPixels(coordinates, Graphics.FONT_XTINY);
+            yA = startYAdditional + lineHeightAdditional * line;
+            // dc.fillRectangle(xA - currentCoordWidth/2 - 7, yA - 5, 10, 10); Should be in the background
+            dc.drawText(xA , yA, Graphics.FONT_XTINY, coordinates, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );    
+            line = line + 1;
         }
-
+        if (mShowObsDistance) {
+            var distToObs = getRelativeToObservation(airQuality.lat, airQuality.lon);
+            if (distToObs.length() > 0) {  
+                yA = startYAdditional + lineHeightAdditional * line;          
+                dc.drawText(xA , yA, Graphics.FONT_XTINY, distToObs, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+                line = line + 1;
+            }
+        }
         // @@ units μg/m3 or ppm
+        dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
         var units = "μg/m3";
-        dc.drawText(dc.getWidth() /2 , startYAdditional + lineHeightAdditional * 3, Graphics.FONT_XTINY, units, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
+        yA = startYAdditional + lineHeightAdditional * line;
+        dc.drawText(xA , yA, Graphics.FONT_XTINY, units, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
     }
     
     function renderAirQualityStats(dc as Dc, airQuality as AirQuality) as Void {
