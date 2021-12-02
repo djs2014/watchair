@@ -1,6 +1,7 @@
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.WatchUi;
+import Toybox.Application.Storage;
 
 //! This is the menu input delegate for the main menu of the application
 class WatchairMenu2Delegate extends WatchUi.Menu2InputDelegate {
@@ -38,20 +39,17 @@ class WatchairMenu2Delegate extends WatchUi.Menu2InputDelegate {
 
     //! Handle the back key being pressed
     public function onBack() as Void {
+        Storage.setValue("backFromMenu", 1);
         WatchUi.popView(WatchUi.SLIDE_DOWN);
     }
 }
 
-//! This is the menu input delegate shared by all the basic sub-menus in the application
 class Menu2SampleSubMenuDelegate extends WatchUi.Menu2InputDelegate {
 
-    //! Constructor
     public function initialize() {
         Menu2InputDelegate.initialize();
     }
 
-    //! Handle an item being selected
-    //! @param item The selected menu item
     public function onSelect(item as MenuItem) as Void {
 
         if (item instanceof WatchUi.ToggleMenuItem) {
@@ -59,17 +57,11 @@ class Menu2SampleSubMenuDelegate extends WatchUi.Menu2InputDelegate {
             Application.Properties.setValue(property, (item as ToggleMenuItem).isEnabled() );
         }
 
-        // For IconMenuItems, we will change to the next icon state.
-        // This demonstrates a custom toggle operation using icons.
-        // Static icons can also be used in this layout.
-        // if (item instanceof WatchUi.IconMenuItem) {
-        //     item.setSubLabel((item.getIcon() as CustomIcon).nextState());
-        // }
         WatchUi.requestUpdate();
     }
 
     //! Handle the back key being pressed
-    public function onBack() as Void {
+    public function onBack() as Void {        
         updateWatchSettings();
         WatchUi.popView(WatchUi.SLIDE_DOWN);
     }

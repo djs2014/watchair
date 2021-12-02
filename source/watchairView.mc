@@ -147,16 +147,13 @@ class watchairView extends WatchUi.View {
     // Called when this View is brought to the foreground. Restore
     // the state of this View and prepare it to be shown. This includes
     // loading resources into memory.
-    function onShow() as Void {        
-        getNewPosition();
-
-        // @@
-        // position, connected, 
-        // mApiKey not empty
-        // - request pending (with timeout max 10 seconds)
-        // - and no info -> webrequest
-        // - location changed > x km -> webrequest
-        // - observation time > x minutes -> webrequest       
+    function onShow() as Void {      
+        var backFromMenu = Storage.getValue("backFromMenu");  
+        if (backFromMenu == null) {
+            getNewPosition();        
+        } else {
+            Storage.deleteValue("backFromMenu");
+        }
     }
 
     // Update the view
