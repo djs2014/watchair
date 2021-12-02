@@ -1,5 +1,5 @@
 <properties>	
-	<property id="openWeatherAPIKey" type="string">--</property>
+	<property id="openWeatherAPIKey" type="string"></property>
 		
 	<property id="pollutionLimitNO2" type="number">25</property>	
 	<property id="pollutionLimitPM10" type="number">45</property>	
@@ -13,4 +13,5 @@
 	<property id="obsTimeShow" type="boolean">true</property>	
 	<property id="obsLocationShow" type="boolean">true</property>	
 	<property id="obsDistanceShow" type="boolean">true</property>	
+	<property id="unitsInPPM" type="boolean">false</property>	
 </properties>

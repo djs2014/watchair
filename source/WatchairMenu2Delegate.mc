@@ -1,9 +1,3 @@
-//
-// Copyright 2018-2021 by Garmin Ltd. or its subsidiaries.
-// Subject to Garmin SDK License Agreement and Wearables
-// Application Developer Agreement.
-//
-
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.WatchUi;
@@ -27,23 +21,16 @@ class WatchairMenu2Delegate extends WatchUi.Menu2InputDelegate {
             toggleMenu.addItem(new WatchUi.ToggleMenuItem("Observation time", {:enabled=>"Show", :disabled=>"Hide"}, "obsTimeShow", mObsTimeShow, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
             toggleMenu.addItem(new WatchUi.ToggleMenuItem("Observation location", {:enabled=>"Show", :disabled=>"Hide"}, "obsLocationShow", mObsLocationShow, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
             toggleMenu.addItem(new WatchUi.ToggleMenuItem("Observation distance", {:enabled=>"Show", :disabled=>"Hide"}, "obsDistanceShow", mObsDistanceShow, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
+            toggleMenu.addItem(new WatchUi.ToggleMenuItem("Units", {:enabled=>"ppm (per million)", :disabled=>"μg/m3"}, "unitsInPPM", mUnitsInPPM, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
             WatchUi.pushView(toggleMenu, new $.Menu2SampleSubMenuDelegate(), WatchUi.SLIDE_UP);
         } else if (id.equals("check")) {
-            // When the check menu item is selected, push a new menu that demonstrates
-            // left and right checkbox menu items
-            var checkMenu = new WatchUi.CheckboxMenu({:title=>"Checkboxes"});
-            checkMenu.addItem(new WatchUi.CheckboxMenuItem("Item 1", "Left Check", "left", false, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
-            checkMenu.addItem(new WatchUi.CheckboxMenuItem("Item 2", "Right Check", "right", false, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_RIGHT}));
-            checkMenu.addItem(new WatchUi.CheckboxMenuItem("Item 3", "Check", "default", true, null));
-            WatchUi.pushView(checkMenu, new $.Menu2SampleSubMenuDelegate(), WatchUi.SLIDE_UP);         
-        } else if (id.equals("custom")) {
-            // When the custom menu item is selected, push a new menu that demonstrates
-            // custom menus
-            var customMenu = new WatchUi.Menu2({:title=>"Custom Menus"});
-            customMenu.addItem(new WatchUi.MenuItem("Basic Drawables", null, :basic, null));
-            customMenu.addItem(new WatchUi.MenuItem("Images", null, :images, null));
-            customMenu.addItem(new WatchUi.MenuItem("Wrap Out", null, :wrap, null));
-            WatchUi.pushView(customMenu, new $.Menu2SampleCustomDelegate(), WatchUi.SLIDE_UP);
+            // // When the check menu item is selected, push a new menu that demonstrates
+            // // left and right checkbox menu items
+            // var checkMenu = new WatchUi.CheckboxMenu({:title=>"Checkboxes"});
+            // checkMenu.addItem(new WatchUi.CheckboxMenuItem("Item 1", "Left Check", "left", false, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
+            // checkMenu.addItem(new WatchUi.CheckboxMenuItem("Item 2", "Right Check", "right", false, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_RIGHT}));
+            // checkMenu.addItem(new WatchUi.CheckboxMenuItem("Item 3", "Check", "default", true, null));
+            // WatchUi.pushView(checkMenu, new $.Menu2SampleSubMenuDelegate(), WatchUi.SLIDE_UP);                 
         } else {
             WatchUi.requestUpdate();
         }
@@ -89,33 +76,6 @@ class Menu2SampleSubMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     //! Handle the done item being selected
     public function onDone() as Void {
-        WatchUi.popView(WatchUi.SLIDE_DOWN);
-    }
-}
-
-//! This is the menu input delegate for the custom sub-menu
-class Menu2SampleCustomDelegate extends WatchUi.Menu2InputDelegate {
-
-    //! Constructor
-    public function initialize() {
-        Menu2InputDelegate.initialize();
-    }
-
-    //! Handle an item being selected
-    //! @param item The selected menu item
-    public function onSelect(item as MenuItem) as Void {
-        var id = item.getId();
-
-        // Create/push the custom menus
-        if (id == :basic) {
-            $.pushBasicCustom();
-        // } else if (id == :wrap) {
-        //     $.pushWrapCustom();
-        }
-    }
-
-    //! Handle the back key being pressed
-    public function onBack() as Void {
         WatchUi.popView(WatchUi.SLIDE_DOWN);
     }
 }

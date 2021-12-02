@@ -22,6 +22,8 @@ class watchairView extends WatchUi.View {
     var mColorValues as ColorType = Graphics.COLOR_WHITE;
     var mBackgroundColor as ColorType = Graphics.COLOR_BLACK;
 
+    var MolW as AQMolWeight = new AQMolWeight();
+
     function initialize(airQuality as AirQuality) {
         View.initialize();
         mAirQuality = airQuality;
@@ -246,6 +248,7 @@ class watchairView extends WatchUi.View {
         // @@ units μg/m3 or ppm
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
         var units = "μg/m3";
+        if (mUnitsInPPM) { units = "ppm"; }
         yA = startYAdditional + lineHeightAdditional * 4;
         dc.drawText(xA , yA, Graphics.FONT_XTINY, units, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
     }
@@ -274,6 +277,7 @@ class watchairView extends WatchUi.View {
             if (idx == 0) {
                 label = "NO2";
                 value = airQuality.no2;
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.NO2); }
                 max = mean.NO2;
             } else if (idx == 1) {
                 label = "PM10";
@@ -282,6 +286,7 @@ class watchairView extends WatchUi.View {
             } else if (idx == 2) {
                 label = "O3";
                 value = airQuality.o3;
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.O3); }
                 max = mean.O3;
             } else if (idx == 3) {
                 label = "PM2.5";
@@ -290,18 +295,23 @@ class watchairView extends WatchUi.View {
             } else if (idx == 4) {
                 label = "SO2";                
                 value = airQuality.so2;
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.SO2); }
                 max = mean.SO2;
             } else if (idx == 5) {
                 label = "NH3";                
                 value = airQuality.nh3;
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.NH3); }
                 max = mean.NH3;
             } else if (idx == 6) {
                 label = "CO";                
                 value = airQuality.co;
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.CO); }
                 max = mean.CO;
             } else if (idx == 7) {
                 label = "NO";                
                 value = airQuality.no;
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.NO); }
+                max = mean.NO;
             }
 
             drawCell(dc, x, y, widthCell, label, value, max, Graphics.FONT_TINY, Graphics.FONT_SYSTEM_XTINY);

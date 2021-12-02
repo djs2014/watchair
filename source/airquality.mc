@@ -10,7 +10,7 @@ class AirQuality {
   const COLOR_WHITE_RED_3 = 0xF5B7B1;
   const COLOR_WHITE_PURPLE_3 = 0xD7BDE2;
     
-  var AQM as AQMean = new AQMean();
+  var AQM as AQMean = new AQMean();  
 
   var lat as Double = 0.0d;
   var lon as Double = 0.0d;
@@ -137,6 +137,7 @@ class AirQuality {
     if (value == null) { return defaultValue; }
     return value as Number;
   }
+
 }
 
 // https://www.c40knowledgehub.org/s/article/WHO-Air-Quality-Guidelines?language=en_US
@@ -152,6 +153,47 @@ class AQMean {
     var NH3 as Number = 14000;
     var CO as Number = 7;
     var NO as Number = 2500;
+
+    function initialize() {}    
+}
+
+// https://www.teesing.com/en/page/library/tools/ppm-mg3-converter
+// concentration (ppm) = 24.45 x concentration (mg/m3) ÷ molecular weight (g/mol)
+function milligramPerM3ToPPM(mgperm3 as Float?, molWeight as Float) as Float? {
+    if (molWeight == null || mgperm3 == null ) { return null; }
+    if (molWeight == 0) { return 0.0f; }
+    return (24.45 * (mgperm3 as Float) / molWeight);
+}
+
+// concentration (mg/m3) = 0.0409 x concentration (ppm) x molecular weight (g/mol)
+// function ppmTomilligramPerM3(ppm as Number, molWeight as Float) as Float {
+//   if (molWeight == 0) { return 0.0; }
+//   return 0.0409 * ppm / molWeight;
+// }
+class AQMolWeight {
+    // Molecular weight
+    // https://www.breeze-technologies.de/blog/air-pollution-how-to-convert-between-mgm3-%C2%B5gm3-ppm-ppb/
+    var NO2 as Float = 46.01f; // g/mol
+    var PM10 as Float = 0.0f; // impossible
+    var O3 as Float = 48.00f; 
+    var PM2_5 as Float = 0.0f; // impossible
+
+    var SO2 as Float = 64.06f; 
+    var NH3 as Float = 17.03f;
+    var CO as Float = 28.01f;
+    var NO as Float = 30.01f;
+
+    // https://www.teesing.com/en/page/library/tools/ppm-mg3-converter
+
+    // NO2 1 ppm = 1.88 μg/m3
+    // PM10 1 ppm = 
+    // O3 1 ppm = 2.00 μg/m3
+    // PM2_5 1 ppm =
+    // SO2 1 ppm = 2.62 μg/m3
+    // NH3 1 ppm = 0.697 mg/m3
+    // CO 1 ppm = 1.145 μg/m3
+    // NO 1 ppm = 1.25 μg/m3
+
 
     function initialize() {}    
 }

@@ -10,6 +10,7 @@ var mShowCurrentLocation as Boolean = true;
 var mObsTimeShow as Boolean = true;
 var mObsLocationShow as Boolean = true;
 var mObsDistanceShow as Boolean = true;
+var mUnitsInPPM as Boolean = false;
 
 class watchairApp extends Application.AppBase {
     var mAirQuality as AirQuality?;
@@ -103,6 +104,7 @@ function updateWatchSettings() as Void {
         mObsTimeShow = getBooleanProperty("obsTimeShow", mObsTimeShow);    
         mObsLocationShow = getBooleanProperty("obsLocationShow", mObsLocationShow);    
         mObsDistanceShow = getBooleanProperty("obsDistanceShow", mObsDistanceShow);    
+        mUnitsInPPM = getBooleanProperty("unitsInPPM", mUnitsInPPM);    
 }
 
 function getBooleanProperty(key as Application.PropertyKeyType, dflt as Lang.Boolean) as Lang.Boolean {

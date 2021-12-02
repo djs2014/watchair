@@ -3,9 +3,9 @@ quality unknown in haslocation
 
 exit menu -> do not request new data!
 - showhide toggle
-    Observation time
-    Observation location
-    Observeration distance
+    x Observation time
+    x Observation location
+    x Observeration distance
     Toggle units  ppm / microm3
 beep alerts
 
@@ -18,3 +18,6 @@ alert/vibrate/beep > level
 - cleanup | remove unused code - low memory
 docu
   - on tap / on
+
+Getting api key
+HTTP 401 -> Api key wrong
