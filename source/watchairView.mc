@@ -10,6 +10,8 @@ import Toybox.Math;
 
 class watchairView extends WatchUi.View {
     var mAirQuality as AirQuality?;
+    var mMolW as AQMolWeight = new AQMolWeight();
+
     var mPhoneBitmap as BitmapType?;
     var mLocation as Location?;
     var mAccuracy as Quality = Position.QUALITY_NOT_AVAILABLE;
@@ -19,10 +21,10 @@ class watchairView extends WatchUi.View {
     var mGPSTimer as Timer.Timer?;
 
     var mColor as ColorType = Graphics.COLOR_WHITE;
+    //var mColorPending as ColorType = Graphics.COLOR_DK_GRAY;
+    var mColorConnectionStats as ColorType = Graphics.COLOR_DK_GRAY;
     var mColorValues as ColorType = Graphics.COLOR_WHITE;
-    var mBackgroundColor as ColorType = Graphics.COLOR_BLACK;
 
-    var MolW as AQMolWeight = new AQMolWeight();
 
     function initialize(airQuality as AirQuality) {
         View.initialize();
@@ -101,14 +103,13 @@ class watchairView extends WatchUi.View {
     }
     
     function refreshUiDelayed(time as Lang.Number) as Void {
-        System.println("refresh delayed");
         var timer = new Timer.Timer();
         var callBack = self.method(:timerRefreshUICallback) as Method() as Void;
         timer.start(callBack, time, false);    
     }
 
     function timerRefreshUICallback() as Void {
-        System.println("refresh delayed timerRefreshUICallback");
+        // clear message
         setMessage(null);   
         WatchUi.requestUpdate(); 
     }
@@ -137,9 +138,7 @@ class watchairView extends WatchUi.View {
     function hasLocation(location as Position.Location?, accuray as Position.Quality) as Boolean {
         if (location == null || accuray == null) { return false; }
 
-        var newLocation = location as Location;
-        var degrees = newLocation.toDegrees();
-
+        var degrees = (location as Location).toDegrees();
         //System.println("Location lat/lon: " + degrees + " accuracy: " + mAccuracy);
         return degrees[0] != 0 && degrees[1] != 0 && accuray != Position.QUALITY_NOT_AVAILABLE;                 
     }
@@ -158,29 +157,27 @@ class watchairView extends WatchUi.View {
 
     // Update the view
     function onUpdate(dc as Dc) as Void {        
-        dc.setColor(mBackgroundColor, mBackgroundColor);    
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);    
         dc.clear();
 
-        // Get latest gps data
+        // Get latest GPS data
         setPosition(Position.getInfo());
 
         var airQuality = mAirQuality as AirQuality;
-           
-        dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
-            
+                       
         drawConnectionStats(dc);
 
         renderAirQualityStats(dc, airQuality);
 
-        dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
+        // additional data
+        dc.setColor(mColorAdditionalData, Graphics.COLOR_TRANSPARENT);
         
         var degrees = null;
         if (hasLocation(mLocation, mAccuracy)) {  
-            // Current
-            var location = mLocation as Position.Location;
-            degrees = location.toDegrees();            
+            // Current position
+            degrees = (mLocation as Position.Location).toDegrees();            
         } else {
-            // Last known
+            // Last known position
             degrees = Storage.getValue("requestCoordinates");
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
         }         
@@ -189,10 +186,11 @@ class watchairView extends WatchUi.View {
             var degreesArray = degrees as Array<Double>;
             coordinates = degreesArray[0].format("%0.4f") + "," + degreesArray[1].format("%0.4f");            
         }
+
         var lineHeight = dc.getFontHeight(Graphics.FONT_SMALL);
         if (mShowCurrentLocation) {
             var currentCoordWidth = dc.getTextWidthInPixels(coordinates, Graphics.FONT_XTINY);
-            dc.fillCircle(dc.getWidth() /2 - currentCoordWidth/2 - 7, lineHeight, 5);
+            drawPerson(dc, dc.getWidth() /2 - currentCoordWidth/2 - 7, lineHeight);            
             dc.drawText(dc.getWidth() /2 , lineHeight, Graphics.FONT_XTINY, coordinates, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
         }
 
@@ -209,7 +207,7 @@ class watchairView extends WatchUi.View {
         dc.drawText(dc.getWidth() /2 , lineHeight * 3, Graphics.FONT_SMALL, airQuality.airQuality(), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );        
         
 
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(mColorAdditionalData, Graphics.COLOR_TRANSPARENT);
         var startYAdditional = lineHeight * 3.5;
         var lineHeightAdditional = dc.getFontHeight(Graphics.FONT_XTINY) * 0.8;
         var line = 1;
@@ -241,7 +239,7 @@ class watchairView extends WatchUi.View {
                 line = line + 1;
             }
         }
-        // @@ units μg/m3 or ppm
+        
         dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
         var units = "μg/m3";
         if (mUnitsInPPM) { units = "ppm"; }
@@ -273,7 +271,7 @@ class watchairView extends WatchUi.View {
             if (idx == 0) {
                 label = "NO2";
                 value = airQuality.no2;
-                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.NO2); }
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, mMolW.NO2); }
                 max = mean.NO2;
             } else if (idx == 1) {
                 label = "PM10";
@@ -282,7 +280,7 @@ class watchairView extends WatchUi.View {
             } else if (idx == 2) {
                 label = "O3";
                 value = airQuality.o3;
-                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.O3); }
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, mMolW.O3); }
                 max = mean.O3;
             } else if (idx == 3) {
                 label = "PM2.5";
@@ -291,22 +289,22 @@ class watchairView extends WatchUi.View {
             } else if (idx == 4) {
                 label = "SO2";                
                 value = airQuality.so2;
-                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.SO2); }
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, mMolW.SO2); }
                 max = mean.SO2;
             } else if (idx == 5) {
                 label = "NH3";                
                 value = airQuality.nh3;
-                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.NH3); }
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, mMolW.NH3); }
                 max = mean.NH3;
             } else if (idx == 6) {
                 label = "CO";                
                 value = airQuality.co;
-                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.CO); }
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, mMolW.CO); }
                 max = mean.CO;
             } else if (idx == 7) {
                 label = "NO";                
                 value = airQuality.no;
-                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, MolW.NO); }
+                if (mUnitsInPPM) { value = milligramPerM3ToPPM(value, mMolW.NO); }
                 max = mean.NO;
             }
 
@@ -383,8 +381,11 @@ class watchairView extends WatchUi.View {
                 
         
         var qna = (mAccuracy == Position.QUALITY_NOT_AVAILABLE);
-        if (qna) { dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);}
-        
+        if (qna) { 
+            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        } else {
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        }
         var barX = m - 20; //+ 5;
         var bottomY = height;
         var barWidth = 2;
@@ -411,8 +412,7 @@ class watchairView extends WatchUi.View {
             y = 1;
             x = m + 5; 
             if (mPhoneBitmap != null) { dc.drawBitmap(x, y, mPhoneBitmap); }
-        }
-        
+        }            
     }
 
 
@@ -553,4 +553,12 @@ class watchairView extends WatchUi.View {
 
         return format("$1$ $2$ ($3$)",[ distance.format("%.2f"), distanceMetric, compassDirection ]);
       }
+
+      function drawPerson(dc as Dc, x as Number, y as Number) as Void {
+        dc.fillCircle(x, y - 3, 2);
+        dc.drawLine(x, y, x - 1, y + 5);
+        dc.drawLine(x, y, x + 1, y + 5);
+        dc.drawLine(x - 3, y, x + 3, y);
+      }
+
 }

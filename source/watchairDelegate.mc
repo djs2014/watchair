@@ -24,12 +24,11 @@ class WatchairDelegate extends WatchUi.BehaviorDelegate {
     //! Handle the menu event
     //! @return true if handled, false otherwise
     public function onMenu() as Boolean {
-        // Generate a new Menu with a drawable Title
         var menu = new WatchUi.Menu2({:title=>new $.DrawableMenuTitle()});
-
-        // Add menu items for demonstrating toggles, checkbox and icon menu items
-        menu.addItem(new WatchUi.MenuItem("Configuration", "display", "display", null));
-        // menu.addItem(new WatchUi.MenuItem("Checkboxes", null, "check", null));        
+        
+        menu.addItem(new WatchUi.MenuItem("Observation", null, "observation", null));
+        menu.addItem(new WatchUi.MenuItem("Alerts", null, "alerts", null));        
+        menu.addItem(new WatchUi.MenuItem("Colors", null, "colors", null));        
         WatchUi.pushView(menu, new $.WatchairMenu2Delegate(), WatchUi.SLIDE_UP);
         return true;
     }
@@ -76,7 +75,7 @@ class DrawableMenuTitle extends WatchUi.Drawable {
         var appIcon = WatchUi.loadResource($.Rez.Drawables.LauncherIcon) as BitmapResource;
         var appName = WatchUi.loadResource($.Rez.Strings.AppName) as String;
         var bitmapWidth = appIcon.getWidth();
-        var labelWidth = dc.getTextWidthInPixels(appName, Graphics.FONT_SMALL);
+        var labelWidth = dc.getTextWidthInPixels(appName, Graphics.FONT_TINY);
 
         var bitmapX = (dc.getWidth() - (bitmapWidth + spacing + labelWidth)) / 2;
         var bitmapY = (dc.getHeight() - appIcon.getHeight()) / 2;
@@ -88,6 +87,6 @@ class DrawableMenuTitle extends WatchUi.Drawable {
 
         dc.drawBitmap(bitmapX, bitmapY, appIcon);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(labelX, labelY, Graphics.FONT_SMALL, appName, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(labelX, labelY, Graphics.FONT_TINY, appName, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 }

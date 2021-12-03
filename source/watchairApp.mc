@@ -1,9 +1,11 @@
 import Toybox.Application;
+import Toybox.Application.Storage;
 import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Time;
 import Toybox.System;
 import Toybox.Math;
+import Toybox.Graphics;
 
 var mApiKey as String? = "";
 var mShowCurrentLocation as Boolean = true;
@@ -11,6 +13,7 @@ var mObsTimeShow as Boolean = true;
 var mObsLocationShow as Boolean = true;
 var mObsDistanceShow as Boolean = true;
 var mUnitsInPPM as Boolean = false;
+var mColorAdditionalData as ColorType = Graphics.COLOR_DK_GRAY;
 
 class watchairApp extends Application.AppBase {
     var mAirQuality as AirQuality?;
@@ -104,7 +107,13 @@ function updateWatchSettings() as Void {
         mObsTimeShow = getBooleanProperty("obsTimeShow", mObsTimeShow);    
         mObsLocationShow = getBooleanProperty("obsLocationShow", mObsLocationShow);    
         mObsDistanceShow = getBooleanProperty("obsDistanceShow", mObsDistanceShow);    
-        mUnitsInPPM = getBooleanProperty("unitsInPPM", mUnitsInPPM);    
+        mUnitsInPPM = getBooleanProperty("unitsInPPM", mUnitsInPPM);   
+
+        // Colorpicker results
+        var value = Storage.getValue("colorAdditionalData");
+        if (value instanceof Lang.Number) {
+          mColorAdditionalData = value as ColorType;         
+        }
 }
 
 function getBooleanProperty(key as Application.PropertyKeyType, dflt as Lang.Boolean) as Lang.Boolean {

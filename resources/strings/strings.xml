@@ -1,6 +1,8 @@
 <strings>
     <string id="AppName">Watch air</string>
 
+    <string id="ColorPickerTitle">Pick a color</string>
+
     <string id="OpenWeatherAPIKey">Open weather map API key</string>
     
     <string id="PollutionLimitsDescription">Values are in µg/m3, use the 24-hour mean values.</string>
