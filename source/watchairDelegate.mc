@@ -1,9 +1,3 @@
-//
-// Copyright 2018-2021 by Garmin Ltd. or its subsidiaries.
-// Subject to Garmin SDK License Agreement and Wearables
-// Application Developer Agreement.
-//
-
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.WatchUi;
@@ -38,8 +32,7 @@ class WatchairDelegate extends WatchUi.BehaviorDelegate {
         var k = keyEvent.getKey();
         if (k == WatchUi.KEY_START || k == WatchUi.KEY_ENTER || k == WatchUi.KEY_RIGHT) {
             if (view != null) {
-                var v = view as watchairView;
-                v.getNewWeatherData();
+                (view as watchairView).getNewWeatherData();
                 WatchUi.requestUpdate();
                 return true;
             }
@@ -53,8 +46,7 @@ class WatchairDelegate extends WatchUi.BehaviorDelegate {
     
     function onBack() {      
         if (view != null) {
-            var v = view as watchairView;
-            v.stopGPSTimer();            
+            (view as watchairView).stopGPSTimer();            
         }
 
         return BehaviorDelegate.onBack();

@@ -1,4 +1,5 @@
 cleanup utils - getApplicationProperty, getValue->getDictionaryValue
+observation time(zone?)
 
 beep alerts
   custom menu

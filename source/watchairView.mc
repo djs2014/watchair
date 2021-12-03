@@ -16,6 +16,7 @@ class watchairView extends WatchUi.View {
     var mPhoneBitmap as BitmapType?;
     var mLocation as Location?;
     var mAccuracy as Quality = Position.QUALITY_NOT_AVAILABLE;
+    var mLastRequestTime as Number = 0;
     var mMessage as String?;
     var mGPSTimerMaxTry as Number = 10;
     var mGPSTimerCount as Number = 0;
@@ -231,7 +232,6 @@ class watchairView extends WatchUi.View {
             coordinates = airQuality.lat.format("%0.4f") + "," + airQuality.lon.format("%0.4f");  
             var currentCoordWidth = dc.getTextWidthInPixels(coordinates, Graphics.FONT_XTINY);
             yA = startYAdditional + lineHeightAdditional * line;
-            // dc.fillRectangle(xA - currentCoordWidth/2 - 7, yA - 5, 10, 10); Should be in the background
             dc.drawText(xA , yA, Graphics.FONT_XTINY, coordinates, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );    
             line = line + 1;
         }
@@ -431,31 +431,25 @@ class watchairView extends WatchUi.View {
 
         var degrees = null;
         if (hasLocation(mLocation, mAccuracy)) {
-            var location = mLocation as Position.Location;
-            degrees = location.toDegrees();
+            degrees = (mLocation as Position.Location).toDegrees();
         } else {
             degrees = Storage.getValue("requestCoordinates");
         } 
         if (degrees == null) { return "No GPS (Last known)"; }
                 
-        var degreesArray = degrees as Array<Double>;                
-        var lat = degreesArray[0];
-        var lon = degreesArray[1];
+        var lat = (degrees as Array<Double>)[0];
+        var lon = (degrees as Array<Double>)[1];
         if (lat == 0.0 && lon == 0.0) { return "No position (0,0)"; }
 
         var phoneConnected = System.getDeviceSettings().phoneConnected; 
         if (!phoneConnected) { return "Phone not connected"; }
 
-        var now = Time.now().value();
-        var lastRequestTime = Storage.getValue("requestTime") as Number?;
-        if (lastRequestTime == null) { lastRequestTime = 0; }
-        var diffSeconds = now - lastRequestTime;
+        var diffSeconds = Time.now().value() - mLastRequestTime;
         // @@ Setting
-        if (diffSeconds < 10) { return "Too soon"; }
+        if (diffSeconds < 10) { return "Wait a moment"; }
 
         Storage.setValue("requestCoordinates", degrees);
-        Storage.setValue("requestTime", Time.now().value());
-
+        mLastRequestTime = Time.now().value();
         requestWeatherData(lat, lon, apiKey);
         return "Requesting data";
     }
@@ -493,9 +487,8 @@ class watchairView extends WatchUi.View {
             //    Background: coord: {lon=>4.853500, lat=>52.353600}
             // Background: list: [{components=>{so2=>4.830000, nh3=>0.840000,
             // pm10=>21.190001, no2=>39.070000, co=>387.190002, no=>16.760000,
-            // o3=>1.520000, pm2_5=>18.580000}, main=>{aqi=>2}, dt=>1636639200}]            
-            var airQuality = mAirQuality as AirQuality;
-            airQuality.updateData(responseData);
+            // o3=>1.520000, pm2_5=>18.580000}, main=>{aqi=>2}, dt=>1636639200}]                        
+            (mAirQuality as AirQuality).updateData(responseData);
             setMessage(null);                          
             } catch (ex) {
                 ex.printStackTrace();
@@ -523,15 +516,13 @@ class watchairView extends WatchUi.View {
         mMessage = message;
     }
     
-    function secondsToShortTimeString(totalSeconds as Number) as String {
-      if (totalSeconds != null && totalSeconds instanceof Lang.Number) {
+    function secondsToShortTimeString(totalSeconds as Number) as String {  
+        if (totalSeconds < 0 ) { return ""; }
         var hours = (totalSeconds / (60 * 60)).toNumber() % 24;
         var minutes = (totalSeconds / 60.0).toNumber() % 60;
         var seconds = (totalSeconds.toNumber() % 60);
 
-        return hours.format("%01d") + ":" + minutes.format("%02d") + ":" + seconds.format("%02d");  
-      }
-      return "";
+        return hours.format("%01d") + ":" + minutes.format("%02d") + ":" + seconds.format("%02d");        
     }
 
     function getRelativeToObservation(latObservation as Double, lonObservation as Double) as String {
@@ -539,8 +530,7 @@ class watchairView extends WatchUi.View {
           return "";
         }
 
-        var currentLocation = mLocation as Location;
-        var degrees = currentLocation.toDegrees();
+        var degrees = (mLocation as Location).toDegrees();
         var latCurrent = degrees[0];
         var lonCurrent = degrees[1];
 
@@ -552,8 +542,7 @@ class watchairView extends WatchUi.View {
           distance = distance / 1.609344; // mile
           distanceMetric = "m";
         }
-        var bearing = getRhumbLineBearing(latCurrent, lonCurrent, latObservation, lonObservation);
-        var compassDirection = getCompassDirection(bearing);
+        var compassDirection = getCompassDirection(getRhumbLineBearing(latCurrent, lonCurrent, latObservation, lonObservation));
 
         return format("$1$ $2$ ($3$)",[ distance.format("%.2f"), distanceMetric, compassDirection ]);
       }
