@@ -27,8 +27,7 @@ class watchairView extends WatchUi.View {
     var mColorConnectionStats as ColorType = Graphics.COLOR_DK_GRAY;
     var mColorValues as ColorType = Graphics.COLOR_WHITE;
 
-    var mAlertHandled as Boolean = false;
-    var mAlertLevel as Number = 3; // Poor 
+    var mAlertHandled as Boolean = false;    
     function initialize(airQuality as AirQuality) {
         View.initialize();
         mAirQuality = airQuality;
@@ -555,7 +554,7 @@ class watchairView extends WatchUi.View {
       }
       
       function handleAlert(airQuality as AirQuality) as Void {
-          if (airQuality.aqi < mAlertLevel) {
+          if (mAlertLevel <= 1 || airQuality.aqi == 0 || airQuality.aqi < mAlertLevel) {
               mAlertHandled = false;
               return;  
           }

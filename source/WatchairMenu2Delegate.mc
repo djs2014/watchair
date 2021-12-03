@@ -23,7 +23,14 @@ class WatchairMenu2Delegate extends WatchUi.Menu2InputDelegate {
             toggleMenu.addItem(new WatchUi.ToggleMenuItem("Units", {:enabled=>"ppm (per million)", :disabled=>"μg/m3"}, "unitsInPPM", mUnitsInPPM, {:alignment=>WatchUi.MenuItem.MENU_ITEM_LABEL_ALIGN_LEFT}));
             WatchUi.pushView(toggleMenu, new $.WatchairSubMenuDelegate(), WatchUi.SLIDE_UP);
         } else if (id.equals("alerts")) {
-           // @@
+            var alertMenu = new WatchUi.Menu2({:title=>"Give alert on"});
+            alertMenu.addItem(new WatchUi.MenuItem("Disabled", null, 1,{})); // Alert on Good ...
+            alertMenu.addItem(new WatchUi.MenuItem("Fair air", null, 2,{}));
+            alertMenu.addItem(new WatchUi.MenuItem("Moderate air", null, 3,{}));
+            alertMenu.addItem(new WatchUi.MenuItem("Poor air", null, 4,{}));
+            alertMenu.addItem(new WatchUi.MenuItem("Very poor air", null, 5,{}));     
+            alertMenu.setFocus(mAlertLevel - 1); // 0-index
+            WatchUi.pushView(alertMenu, new $.WatchairSubMenuDelegate(), WatchUi.SLIDE_UP);           
         } else if (id.equals("colors")) {
             WatchUi.pushView(new $.ColorPicker("colorAdditionalData", "Additional data", [Graphics.COLOR_WHITE, Graphics.COLOR_LT_GRAY, 
                 Graphics.COLOR_DK_GRAY, Graphics.COLOR_DK_GREEN, Graphics.COLOR_DK_BLUE, Graphics.COLOR_PURPLE] as Array<ColorType>), 
@@ -55,6 +62,12 @@ class WatchairSubMenuDelegate extends WatchUi.Menu2InputDelegate {
         if (item instanceof WatchUi.ToggleMenuItem) {
             var property = item.getId() as String;            
             Application.Properties.setValue(property, (item as ToggleMenuItem).isEnabled() );
+        } else if (item.getId() instanceof Lang.Number) {
+            // @@ QND
+            mAlertLevel = item.getId() as Lang.Number;
+            Application.Properties.setValue("aqiAlertLevel", mAlertLevel);
+            onBack();
+            return;
         }
 
         WatchUi.requestUpdate();

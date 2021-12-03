@@ -14,6 +14,7 @@ var mObsLocationShow as Boolean = true;
 var mObsDistanceShow as Boolean = true;
 var mUnitsInPPM as Boolean = false;
 var mColorAdditionalData as ColorType = Graphics.COLOR_DK_GRAY;
+var mAlertLevel as Number = 4; // Poor 
 
 class watchairApp extends Application.AppBase {
     var mAirQuality as AirQuality?;
@@ -78,6 +79,7 @@ function updateWatchSettings() as Void {
   mObsDistanceShow = getApplicationProperty("obsDistanceShow", mObsDistanceShow) as Lang.Boolean;    
   mUnitsInPPM = getApplicationProperty("unitsInPPM", mUnitsInPPM) as Lang.Boolean;       
 
+  mAlertLevel = getApplicationProperty("aqiAlertLevel", mAlertLevel) as Lang.Number;      
   // Colorpicker results
   var value = Storage.getValue("colorAdditionalData");
   if (value instanceof Lang.Number) {
