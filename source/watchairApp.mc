@@ -24,12 +24,12 @@ class watchairApp extends Application.AppBase {
 
     // onStart() is called on application start up
     function onStart(state as Dictionary?) as Void {
-      System.println("Start");
+      // System.println("Start");
     }
 
     // onStop() is called when your application is exiting
     function onStop(state as Dictionary?) as Void {
-      System.println("Stop");
+      // System.println("Stop");
     }
 
     // Return the initial view of your application here
@@ -53,18 +53,16 @@ class watchairApp extends Application.AppBase {
       try {
         System.println("Load usersettings");
         
-        // var x = Toybox.Application.Properties;
-        var val = Toybox.Application.Properties.getValue("pollutionLimitNO2"); // as Lang.Number;
-                
-        mApiKey = getStringProperty("openWeatherAPIKey", "");                        
-        airQuality.AQM.NO2 = getNumberProperty("pollutionLimitNO2", airQuality.AQM.NO2);
-        airQuality.AQM.PM10 = getNumberProperty("pollutionLimitPM10", airQuality.AQM.PM10);
-        airQuality.AQM.O3 = getNumberProperty("pollutionLimitO3", airQuality.AQM.O3);
-        airQuality.AQM.PM2_5 = getNumberProperty("pollutionLimitPM2_5", airQuality.AQM.PM2_5);
-        airQuality.AQM.SO2 = getNumberProperty("pollutionLimitSO2", airQuality.AQM.SO2);
-        airQuality.AQM.NH3 = getNumberProperty("pollutionLimitNH3", airQuality.AQM.NH3);
-        airQuality.AQM.CO = getNumberProperty("pollutionLimitCO", airQuality.AQM.CO);
-        airQuality.AQM.NO = getNumberProperty("pollutionLimitNO", airQuality.AQM.NO);    
+        //@@ var val = Toybox.Application.Properties.getValue("pollutionLimitNO2"); // as Lang.Number;                
+        mApiKey = getApplicationProperty("openWeatherAPIKey", "") as Lang.String;                        
+        airQuality.AQM.NO2 = getApplicationProperty("pollutionLimitNO2", airQuality.AQM.NO2) as Lang.Number;
+        airQuality.AQM.PM10 = getApplicationProperty("pollutionLimitPM10", airQuality.AQM.PM10) as Lang.Number;
+        airQuality.AQM.O3 = getApplicationProperty("pollutionLimitO3", airQuality.AQM.O3) as Lang.Number;
+        airQuality.AQM.PM2_5 = getApplicationProperty("pollutionLimitPM2_5", airQuality.AQM.PM2_5) as Lang.Number;
+        airQuality.AQM.SO2 = getApplicationProperty("pollutionLimitSO2", airQuality.AQM.SO2) as Lang.Number;
+        airQuality.AQM.NH3 = getApplicationProperty("pollutionLimitNH3", airQuality.AQM.NH3) as Lang.Number;
+        airQuality.AQM.CO = getApplicationProperty("pollutionLimitCO", airQuality.AQM.CO) as Lang.Number;
+        airQuality.AQM.NO = getApplicationProperty("pollutionLimitNO", airQuality.AQM.NO) as Lang.Number;
 
         updateWatchSettings();
         System.println("loadUserSettings loaded");
@@ -72,62 +70,31 @@ class watchairApp extends Application.AppBase {
         ex.printStackTrace();
       }
     }
-    
-  
-   
-
-    function getNumberProperty(key as Application.PropertyKeyType, dflt as Lang.Number) as Lang.Number {
-      try {
-        var val = Toybox.Application.Properties.getValue(key) as Lang.Number;
-        if (val != null && val instanceof Lang.Number) {
-          return val;
-        }
-      } catch (e) {
-        return dflt;
-      }
-      return dflt;
-    }
-
-    function getStringProperty(key as Application.PropertyKeyType, dflt as Lang.String) as Lang.String {
-      try {
-        var val = Toybox.Application.Properties.getValue(key as Lang.String) as Lang.String;
-        System.println(val);
-        if (val != null && val instanceof Lang.String) {
-          return val;
-        }
-      } catch (e) {
-        return dflt;
-      }
-      return dflt;
-    }
-
 }
 
 function updateWatchSettings() as Void {
-        mObsTimeShow = getBooleanProperty("obsTimeShow", mObsTimeShow);    
-        mObsLocationShow = getBooleanProperty("obsLocationShow", mObsLocationShow);    
-        mObsDistanceShow = getBooleanProperty("obsDistanceShow", mObsDistanceShow);    
-        mUnitsInPPM = getBooleanProperty("unitsInPPM", mUnitsInPPM);   
+  mObsTimeShow = getApplicationProperty("obsTimeShow", mObsTimeShow) as Lang.Boolean;    
+  mObsLocationShow = getApplicationProperty("obsLocationShow", mObsLocationShow) as Lang.Boolean;       
+  mObsDistanceShow = getApplicationProperty("obsDistanceShow", mObsDistanceShow) as Lang.Boolean;    
+  mUnitsInPPM = getApplicationProperty("unitsInPPM", mUnitsInPPM) as Lang.Boolean;       
 
-        // Colorpicker results
-        var value = Storage.getValue("colorAdditionalData");
-        if (value instanceof Lang.Number) {
-          mColorAdditionalData = value as ColorType;         
-        }
+  // Colorpicker results
+  var value = Storage.getValue("colorAdditionalData");
+  if (value instanceof Lang.Number) {
+    mColorAdditionalData = value as ColorType;         
+  }
 }
 
-function getBooleanProperty(key as Application.PropertyKeyType, dflt as Lang.Boolean) as Lang.Boolean {
+function getApplicationProperty(key as Application.PropertyKeyType, dflt as Application.PropertyValueType ) as Application.PropertyValueType {
   try {
-    var val = Toybox.Application.Properties.getValue(key) as Lang.Boolean;
-    if (val != null && val instanceof Lang.Boolean) {
-      return val;
-    }
+    var val = Toybox.Application.Properties.getValue(key);
+    if (val != null) { return val; }
   } catch (e) {
     return dflt;
   }
   return dflt;
 }
-  
+
 function getApp() as watchairApp {
     return Application.getApp() as watchairApp;
 }

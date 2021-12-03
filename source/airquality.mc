@@ -1,15 +1,8 @@
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.Time;
-import Toybox.Graphics; 
 
-class AirQuality {
-  const COLOR_WHITE_DK_BLUE_3 = 0xA9CCE3;
-  const COLOR_WHITE_LT_GREEN_3 = 0xA3E4D7;
-  const COLOR_WHITE_ORANGERED_2 = 0xFAE5D3;
-  const COLOR_WHITE_RED_3 = 0xF5B7B1;
-  const COLOR_WHITE_PURPLE_3 = 0xD7BDE2;
-    
+class AirQuality {    
   var AQM as AQMean = new AQMean();  
 
   var lat as Double = 0.0d;
@@ -65,29 +58,29 @@ class AirQuality {
     // pm10=>21.190001, no2=>39.070000, co=>387.190002, no=>16.760000,
     // o3=>1.520000, pm2_5=>18.580000}, main=>{aqi=>2}, dt=>1636639200}]
     try {
-      reset();
       if (data == null) { return; }
+      reset();
       var coord = data["coord"] as Dictionary; //<String, Float>;
       if (coord != null) {
-        lat = getValueAsDouble(coord, "lat", 0.0d) as Double;
-        lon = getValueAsDouble(coord, "lon", 0.0d) as Double;
+        lat = getValue(coord, "lat", 0.0d) as Double;
+        lon = getValue(coord, "lon", 0.0d) as Double;        
       }
       var list = data["list"] as Array;
       if (list != null) {
         var item = list[0] as Dictionary;
         var main = item["main"] as Dictionary;
-        if (main != null) { aqi = getValueAsNumber(main, "aqi", 0); }
+        if (main != null) { aqi = getValue(main, "aqi", 0) as Number; }
         var components = item["components"] as Dictionary;
-        so2 = getValueAsFloat(components,"so2", null);
-        nh3 = getValueAsFloat(components,"nh3", null);
-        pm10 = getValueAsFloat(components,"pm10", null);
-        no2 = getValueAsFloat(components,"no2", null);
-        co = getValueAsFloat(components,"co", null);
-        no = getValueAsFloat(components,"no", null);
-        o3 = getValueAsFloat(components,"o3", null);
-        pm2_5 = getValueAsFloat(components,"pm2_5", null);
+        so2 = getValue(components,"so2", null) as Float?;
+        nh3 = getValue(components,"nh3", null) as Float?;
+        pm10 = getValue(components,"pm10", null) as Float?;
+        no2 = getValue(components,"no2", null) as Float?;
+        co = getValue(components,"co", null) as Float?;
+        no = getValue(components,"no", null) as Float?;
+        o3 = getValue(components,"o3", null) as Float?;
+        pm2_5 = getValue(components,"pm2_5", null) as Float?;
             
-        var dt = getValueAsNumber(item, "dt", 0);
+        var dt = getValue(item, "dt", 0) as Number;
         if (dt > 0) { observationTime = new Time.Moment(dt); }      
       }      
     } catch (ex) {
@@ -110,34 +103,12 @@ class AirQuality {
     return "Very poor";
   }
 
-  function airQualityAsColor() as ColorType? {
-    if (aqi == null || aqi <= 0 ) { return null; }
-    if (aqi == 1) { return COLOR_WHITE_DK_BLUE_3; }
-    if (aqi == 2) { return COLOR_WHITE_LT_GREEN_3; }
-    if (aqi == 3) { return COLOR_WHITE_ORANGERED_2; }
-    if (aqi == 4) { return COLOR_WHITE_RED_3; }
-    if (aqi == 5) { return COLOR_WHITE_PURPLE_3; }
-    return null;
-  }
-
-   hidden function getValueAsDouble(data as Dictionary, key as String, defaultValue as Double?) as Double? {
+  hidden function getValue(data as Dictionary, key as String, defaultValue as Numeric?) as Numeric? {
     var value = data.get(key);
     if (value == null) { return defaultValue; }
-    return value as Double;
+    return value as Numeric;
   }
-
-  hidden function getValueAsFloat(data as Dictionary, key as String, defaultValue as Float?) as Float? {
-    var value = data.get(key);
-    if (value == null) { return defaultValue; }
-    return value as Float;
-  }
-
-  hidden function getValueAsNumber(data as Dictionary, key as String, defaultValue as Number) as Number {
-    var value = data.get(key);
-    if (value == null) { return defaultValue; }
-    return value as Number;
-  }
-
+  
 }
 
 // https://www.c40knowledgehub.org/s/article/WHO-Air-Quality-Guidelines?language=en_US

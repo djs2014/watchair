@@ -29,6 +29,7 @@ class WatchairDelegate extends WatchUi.BehaviorDelegate {
         menu.addItem(new WatchUi.MenuItem("Observation", null, "observation", null));
         menu.addItem(new WatchUi.MenuItem("Alerts", null, "alerts", null));        
         menu.addItem(new WatchUi.MenuItem("Colors", null, "colors", null));        
+        menu.addItem(new WatchUi.MenuItem("Reset", "clear storage", "reset", null));        
         WatchUi.pushView(menu, new $.WatchairMenu2Delegate(), WatchUi.SLIDE_UP);
         return true;
     }

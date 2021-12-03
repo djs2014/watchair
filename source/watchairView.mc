@@ -7,6 +7,7 @@ import Toybox.Time;
 import Toybox.Timer;
 import Toybox.Lang;
 import Toybox.Math;
+import Toybox.Attention;
 
 class watchairView extends WatchUi.View {
     var mAirQuality as AirQuality?;
@@ -25,7 +26,8 @@ class watchairView extends WatchUi.View {
     var mColorConnectionStats as ColorType = Graphics.COLOR_DK_GRAY;
     var mColorValues as ColorType = Graphics.COLOR_WHITE;
 
-
+    var mAlertHandled as Boolean = false;
+    var mAlertLevel as Number = 3; // Poor 
     function initialize(airQuality as AirQuality) {
         View.initialize();
         mAirQuality = airQuality;
@@ -164,9 +166,9 @@ class watchairView extends WatchUi.View {
         setPosition(Position.getInfo());
 
         var airQuality = mAirQuality as AirQuality;
-                       
-        drawConnectionStats(dc);
+        handleAlert(airQuality);
 
+        drawConnectionStats(dc);
         renderAirQualityStats(dc, airQuality);
 
         // additional data
@@ -194,11 +196,13 @@ class watchairView extends WatchUi.View {
             dc.drawText(dc.getWidth() /2 , lineHeight, Graphics.FONT_XTINY, coordinates, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );
         }
 
-        dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
         if (mMessage != null) {
             var message = mMessage as String;
+            dc.setColor(mColor, Graphics.COLOR_BLACK);
             dc.drawText(dc.getWidth() /2 , lineHeight * 2, Graphics.FONT_TINY, message, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );            
+            dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
         } else {
+            dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
             dc.drawText(dc.getWidth() /2 , lineHeight * 2, Graphics.FONT_TINY, "Air quality", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );            
         }
         // @@ TODO 
@@ -560,5 +564,22 @@ class watchairView extends WatchUi.View {
         dc.drawLine(x, y, x + 1, y + 5);
         dc.drawLine(x - 3, y, x + 3, y);
       }
+      
+      function handleAlert(airQuality as AirQuality) as Void {
+          if (airQuality.aqi < mAlertLevel) {
+              mAlertHandled = false;
+              return;  
+          }
+          if (mAlertHandled) { return; }
 
+          if (Attention has :vibrate) {
+            var vibeData = [
+                new Attention.VibeProfile(50, 1000), // On
+                new Attention.VibeProfile(0, 500),  // Off
+                new Attention.VibeProfile(50, 1000), // On                 
+            ] as Array<VibeProfile>;
+            Attention.vibrate(vibeData);
+          }
+          mAlertHandled = true;          
+      }
 }

@@ -36,6 +36,9 @@ class WatchairMenu2Delegate extends WatchUi.Menu2InputDelegate {
             WatchUi.pushView(new $.ColorPicker("colorAdditionalData", "Additional data", [Graphics.COLOR_WHITE, Graphics.COLOR_LT_GRAY, 
                 Graphics.COLOR_DK_GRAY, Graphics.COLOR_DK_GREEN, Graphics.COLOR_DK_BLUE, Graphics.COLOR_PURPLE] as Array<ColorType>), 
                 new $.ColorPickerDelegate("colorAdditionalData"), WatchUi.SLIDE_IMMEDIATE);
+        } else if (id.equals("reset")) {
+            Storage.clearValues();
+            onBack();
         } else {
             WatchUi.requestUpdate();
         }
