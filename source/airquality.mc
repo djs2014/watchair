@@ -59,6 +59,7 @@ class AirQuality {
     // o3=>1.520000, pm2_5=>18.580000}, main=>{aqi=>2}, dt=>1636639200}]
     try {
       if (data == null) { return; }
+      
       reset();
       var coord = data["coord"] as Dictionary; //<String, Float>;
       if (coord != null) {

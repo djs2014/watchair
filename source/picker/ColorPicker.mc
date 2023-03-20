@@ -53,9 +53,10 @@ class ColorPickerDelegate extends WatchUi.PickerDelegate {
     //! Handle a confirm event
     //! @param values The values chosen
     //! @return true if handled, false otherwise
-    public function onAccept(values as Array<Number>) as Boolean {
-        Storage.setValue(mStorageField, values[0]);
-
+    public function onAccept(values as Array) as Boolean {
+        if (values.size() > 0) {
+            Storage.setValue(mStorageField, values[0] as String);
+        }
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
         return true;
     }

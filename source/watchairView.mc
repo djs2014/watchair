@@ -229,7 +229,7 @@ class watchairView extends WatchUi.View {
         
         if (mObsLocationShow) {
             coordinates = airQuality.lat.format("%0.4f") + "," + airQuality.lon.format("%0.4f");  
-            var currentCoordWidth = dc.getTextWidthInPixels(coordinates, Graphics.FONT_XTINY);
+            // var currentCoordWidth = dc.getTextWidthInPixels(coordinates, Graphics.FONT_XTINY);
             yA = startYAdditional + lineHeightAdditional * line;
             dc.drawText(xA , yA, Graphics.FONT_XTINY, coordinates, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER );    
             line = line + 1;
@@ -378,7 +378,7 @@ class watchairView extends WatchUi.View {
     function drawConnectionStats(dc as Dc) as Void {
         var m = dc.getWidth() / 2; 
         var y = 1;
-        var width = 40;
+        // var width = 40;
         var height = 20;
         var x = m + 20; 
                 
@@ -472,23 +472,27 @@ class watchairView extends WatchUi.View {
                 :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON	
             };
         var responseCallBack = self.method(:onReceiveOpenWeatherResponse)
-            as Method(responseCode as Number, responseData as Dictionary?) as Void;
+            as Method(responseCode as Number, responseData as Lang.Dictionary or Null or Lang.String) as Void;
 
         var params = {};
         Communications.makeWebRequest(url, params, options, responseCallBack);
     }
 
-    function onReceiveOpenWeatherResponse(responseCode as String, responseData as Dictionary?) as Void {
+    function onReceiveOpenWeatherResponse(responseCode as Number, responseData as Lang.Dictionary or Null or Lang.String) as Void {
         if (responseCode == 200 && responseData != null) {
         try {
-            printJson(responseData);
+            // printJson(responseData);
 
             //    Background: coord: {lon=>4.853500, lat=>52.353600}
             // Background: list: [{components=>{so2=>4.830000, nh3=>0.840000,
             // pm10=>21.190001, no2=>39.070000, co=>387.190002, no=>16.760000,
             // o3=>1.520000, pm2_5=>18.580000}, main=>{aqi=>2}, dt=>1636639200}]                        
-            (mAirQuality as AirQuality).updateData(responseData);
-            setMessage(null);                          
+                if (responseData instanceof Dictionary) {
+                    (mAirQuality as AirQuality).updateData(responseData as Dictionary);
+                    setMessage(null);                                      
+                } else if (responseData instanceof String) {
+                    setMessage(responseData as String);                                      
+                }
             } catch (ex) {
                 ex.printStackTrace();
                 setMessage("Oops: " + ex.getErrorMessage());                
@@ -500,16 +504,16 @@ class watchairView extends WatchUi.View {
         WatchUi.requestUpdate();
     }
 
-    function printJson(data as Dictionary?) as Void{
-        if (data == null) {
-            System.println("No data!");
-            return;
-        }
-        var keys = data.keys();
-            for (var i = 0; i < keys.size(); i++) {
-            System.println(Lang.format("$1$: $2$\n", [ keys[i], data[keys[i]] ]));
-        }  
-    }
+    // function printJson(data as Lang.Dictionary or Null or Lang.String) as Void{
+    //     if (data == null) {
+    //         System.println("No data!");
+    //         return;
+    //     }
+    //     var keys = data.keys();
+    //         for (var i = 0; i < keys.size(); i++) {
+    //         System.println(Lang.format("$1$: $2$\n", [ keys[i], data[keys[i]] ]));
+    //     }  
+    // }
 
     function setMessage(message as String?) as Void {
         mMessage = message;
